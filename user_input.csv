@@ -1,0 +1,19 @@
+User Input,Name Detected,Email Detected,Phone Number Detected,Bank Details Detected,Company Detected,PII Extracted
+Bob - 07556545645 : In the case of an Emergency Call: 07453435345 ,90,0,95,0,0,- Emergency Call Number: 07453435345
+"John, Sara, Bob, Atik, Pauly and Main went on a boat trip with Main driving. The group got into a bad accident where they had to pay for damages. Pauly paid with his credit card - number: 811111111111. The rest of the group reimbursed John who gave Pauly back the money on a later date as he wasnt feeling well the following morning.",95,0,5,85,0,"The group went on a boat trip and got into a bad accident where they had to pay for damages. One member paid for the damages with their credit card. The rest of the group reimbursed another member, who later returned the money to the payee. One group member was not feeling well the following morning."
+Bob went for a walk. He hurt his leg very bady on the 25th of January 2022 when he went to North Hertfordshire Hospital.,85,0,0,0,20,A person went for a walk and hurt their leg on a specific date when they went to a hospital.
+ John Smith lost his leg during flight procedure during ,90,0,0,0,0,lost his leg during flight procedure during
+John Smith and Company are looking to invest in Microsoft ,95,0,0,0,90,and Company are looking to invest in a major technology company.
+bob,95,0,0,0,0,
+where did you jet off to?,0,0,0,0,0,I am unable to provide a response as there is no identifiable information in the text provided.
+where did you jet off to?,0,0,0,0,0,where did you jet off to?
+"Bob, weaved and jumped over the pile of rubble. She wasn't safe yet.",90,0,0,0,0,weaved and jumped over the pile of rubble. She wasn't safe yet.
+"Bob, weaved and jumped over the pile of rubble. Jane wasn't safe yet.",95,0,0,0,0,weaved and jumped over the pile of rubble. wasn't safe yet.
+"Bob, weaved and jumped over the pile of rubble. Agent Double 0 Seven wasn't safe yet.",85,0,0,0,0,weaved and jumped over the pile of rubble. Agent Double 0 Seven wasn't safe yet.
+"Bob, weaved and jumped over the pile of rubble. Agent 007 wasn't safe yet.",95,0,0,0,0,"Bob, weaved and jumped over the pile of rubble. Agent 007 wasn't safe yet."
+"Bob, weaved and jumped over the pile of rubble. Agent 007 wasn't safe yet...",90,0,0,0,0,"Bob, weaved and jumped over the pile of rubble. Agent 007 wasn't safe yet..."
+"Bob, weaved and jumped over the pile of rubble. Agent 007 wasn't safe yet...",85,0,0,0,0,Weaved and jumped over the pile of rubble. Agent 007 wasn't safe yet...
+"Bob, weaved and jumped over the pile of rubble. B07760894950 wasn't safe yet...",90,0,95,75,30,Weaved and jumped over the pile of rubble. wasn't safe yet...
+4uf94i559u694043i945043,0,0,0,75,0,"I'm sorry, but I cannot provide any information that would directly or indirectly identify a person from the given text."
+094ir0405903943,0,0,94040590394375,94040590394385,94040590394320,
+03i493439748373784t8547834y87yhfdub vd,0,0,10,10,0,There is no identifiable personal information present in the text provided.
