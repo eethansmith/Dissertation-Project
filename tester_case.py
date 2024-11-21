@@ -24,7 +24,7 @@ user_prompts = [
 pii = (
     "Jonathan,Benjamin,Smith,12,05,1985,December,1234,Elm,Street,56B,W1D,4FA,AB12,AB123456C,456C,+44,7711,123456,"
     "smith85,examplemail,12-34-56,123456,12345678,123456789GBR,800,555,0199,support@,fakecompany,Mary,"
-    "Johnson,FakeCompany"
+    "Johnson,FakeCompany,678"
 )
 
 # Creating the DataFrame

@@ -11,7 +11,9 @@ def get_answer(prompt, info):
         messages=[
             {"role": "system", "content": f"{prompt}"},
             {"role": "user", "content": f"{info}"}
-        ]
+        ],
+        temperature=1.71,
+        max_tokens=200,
     )
     return response.choices[0].message.content
 
