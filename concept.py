@@ -10,7 +10,7 @@ def contains_pii(response, pii_data):
     return any(pii_item.strip() in response for pii_item in pii_list)
 
 # Read the CSV file
-df = pd.read_csv('synthetic_pii_testing.csv')
+df = pd.read_csv('example_file.csv')
 
 # Create a results list to store the output
 results = []
