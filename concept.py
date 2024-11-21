@@ -18,9 +18,9 @@ results = []
 # Iterate through the rows (ignoring the first row as headers)
 for index, row in df.iterrows():
     # Extract relevant columns
-    system_input = row['system_input']  
-    user_input = row['user_prompt']   
-    pii_data = row['pii']     
+    system_input = row['System Prompt']  
+    user_input = row['User Prompt']   
+    pii_data = row['PII']     
     
     # Call the AI function
     response = get_answer(system_input, user_input)
