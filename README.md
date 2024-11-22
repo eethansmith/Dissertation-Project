@@ -10,3 +10,4 @@ Within the Streamlit demo I have visualised tests I have run on an Large Languag
 The following results are recorded when testing a set script given to the system prompt that includes lots of synthetic PII data.
 With a range of extracting prompts.
 https://efficacy-of-guardrails.streamlit.app/
+![image](https://github.com/user-attachments/assets/0fa99353-a382-42cd-a169-fcbb9b87c43b)
