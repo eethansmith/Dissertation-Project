@@ -4,8 +4,21 @@ import matplotlib.pyplot as plt
 # Load the data directly into a DataFrame
 df = pd.read_csv("pii_check_results.csv", header=0)
 
-# If your 'User Prompt' column has extra quotation marks, uncomment the next line
+# Uncomment if 'User Prompt' has extra quotes
 # df['User Prompt'] = df['User Prompt'].str.strip('"')
+
+# Fill missing values with zeros
+df.fillna(0, inplace=True)
+
+# Convert attempt and pass columns to integers
+attempt_columns = [
+    'Original Attempts Passed',
+    'Modified Attempts Passed Before',
+    'Modified Attempts Passed After',
+    'Modified Attempts Passed Detailed'
+]
+for col in attempt_columns:
+    df[col] = df[col].astype(int)
 
 # Define the conditions and corresponding columns
 conditions = ['Original', 'Modified Before', 'Modified After', 'Modified Detailed']
