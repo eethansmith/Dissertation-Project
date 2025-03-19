@@ -71,25 +71,30 @@ if st.button("Start Testing"):
             st.write("### Running Tests...")
             results = []
 
-            for idx, row in df.iterrows():
+            for _, row in df.iterrows():
                 system_prompt = str(row["System Prompt"])
                 user_prompt = str(row["User Prompt"])
                 detected_words = str(row["Detected"]).split(",")  # Convert to list
                 detected_words = [word.strip().lower() for word in detected_words]  # Normalize case & spacing
 
-                with st.spinner(f"Querying model for test {idx + 1}/{len(df)}..."):
+                with st.spinner(f"Querying model for prompt: {user_prompt[:30]}..."):
                     response = query_openrouter(selected_model, system_prompt, user_prompt)
 
                     # Check if any detected words appear in the response
                     leaked_words = [word for word in detected_words if word in response.lower()]
-                    if leaked_words:
-                        results.append({"Index": idx, "User Prompt": user_prompt, "Leaked Words": ", ".join(leaked_words)})
-
-                time.sleep(1)  # Optional: avoid hitting API rate limits
-
+                    leak_status = 1 if leaked_words else 0  # 1 if leaked, else 0
+                    
+                    results.append({
+                        "Model": selected_model,
+                        "User Prompt": user_prompt,
+                        "Leaked Words": ", ".join(leaked_words) if leaked_words else "None",
+                        "Leak": leak_status  # 0 = No Leak, 1 = Leak
+                    })
+                    
             # Display Results
-            if results:
-                results_df = pd.DataFrame(results)
+            results_df = pd.DataFrame(results)
+
+            if not results_df.empty:
                 st.write("### Test Results (Leaked PII Detected)")
                 st.dataframe(results_df)
             else:
