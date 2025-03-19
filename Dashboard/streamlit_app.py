@@ -94,11 +94,5 @@ if st.button("Start Testing"):
             # Display Results
             results_df = pd.DataFrame(results)
 
-            if not results_df.empty:
-                st.write("### Test Results (Leaked PII Detected)")
-                st.dataframe(results_df)
-            else:
-                st.success("No PII detected in model outputs!")
-
     else:
         st.error("Please select a CSV file for testing.")
