@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import pandas as pd
+import time
 from openai import OpenAI
 
 # Streamlit App title
@@ -22,51 +23,77 @@ client = OpenAI(
     api_key=st.secrets["OPENROUTER_API_KEY"]
 )
 
-def query_openrouter(model, prompt):
+def query_openrouter(model, system_prompt, user_prompt):
+    """Sends system and user prompts to the model and retrieves the response."""
     try:
         completion = client.chat.completions.create(
             model=model,
-            messages=[{"role": "user", "content": prompt}],
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
         )
         return completion.choices[0].message.content
     except Exception as e:
-        st.error(f"API Error: {e}")
-        return None
+        return f"API Error: {e}"
 
-# List available CSV files in "TestScripts" directory
+# Ensure directory exists
 test_scripts_dir = "TestScripts"
-os.makedirs(test_scripts_dir, exist_ok=True)  # Ensure directory exists
+os.makedirs(test_scripts_dir, exist_ok=True)
+
+# List CSV files in directory
 csv_files = [f for f in os.listdir(test_scripts_dir) if f.endswith(".csv")]
 
-# Allow user to upload their own CSV
+# File uploader for new CSVs
 uploaded_file = st.file_uploader("Upload your CSV", type=["csv"])
-
 if uploaded_file:
     uploaded_filename = os.path.join(test_scripts_dir, uploaded_file.name)
     with open(uploaded_filename, "wb") as f:
         f.write(uploaded_file.getbuffer())
-    csv_files.append(uploaded_file.name)  # Add uploaded file to dropdown options
+    csv_files.append(uploaded_file.name)  # Add uploaded file to dropdown
 
-# Dropdown to select CSV file
+# Dropdown to select CSV
 selected_csv = st.selectbox("Select a CSV file for testing:", csv_files)
 
-# Display selected CSV content
-if selected_csv:
-    csv_path = os.path.join(test_scripts_dir, selected_csv)
-    df = pd.read_csv(csv_path)
-    st.write(f"### Preview of {selected_csv}")
-    st.dataframe(df)
-
-# Streamlit Interface
+# Dropdown for model selection
 selected_model = st.selectbox("Select LLM Model:", MODEL_OPTIONS)
-user_prompt = st.text_area("Your Prompt:", height=200)
 
-if st.button("Submit"):
-    if user_prompt.strip():
-        with st.spinner(f"Querying {selected_model}..."):
-            response = query_openrouter(selected_model, user_prompt)
-            if response:
-                st.subheader("Response:")
-                st.write(response)
+if st.button("Start Testing"):
+    if selected_csv:
+        csv_path = os.path.join(test_scripts_dir, selected_csv)
+        df = pd.read_csv(csv_path)
+
+        # Ensure required columns exist
+        required_columns = {"System Prompt", "User Prompt", "Detected"}
+        if not required_columns.issubset(df.columns):
+            st.error("Selected CSV does not contain the required columns: 'System Prompt', 'User Prompt', 'Detected'")
+        else:
+            st.write("### Running Tests...")
+            results = []
+
+            for idx, row in df.iterrows():
+                system_prompt = str(row["System Prompt"])
+                user_prompt = str(row["User Prompt"])
+                detected_words = str(row["Detected"]).split(",")  # Convert to list
+                detected_words = [word.strip().lower() for word in detected_words]  # Normalize case & spacing
+
+                with st.spinner(f"Querying model for test {idx + 1}/{len(df)}..."):
+                    response = query_openrouter(selected_model, system_prompt, user_prompt)
+
+                    # Check if any detected words appear in the response
+                    leaked_words = [word for word in detected_words if word in response.lower()]
+                    if leaked_words:
+                        results.append({"Index": idx, "User Prompt": user_prompt, "Leaked Words": ", ".join(leaked_words)})
+
+                time.sleep(1)  # Optional: avoid hitting API rate limits
+
+            # Display Results
+            if results:
+                results_df = pd.DataFrame(results)
+                st.write("### Test Results (Leaked PII Detected)")
+                st.dataframe(results_df)
+            else:
+                st.success("No PII detected in model outputs!")
+
     else:
-        st.error("Please enter a prompt.")
+        st.error("Please select a CSV file for testing.")
