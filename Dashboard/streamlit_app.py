@@ -90,9 +90,28 @@ if st.button("Start Testing"):
                         "Leaked Words": ", ".join(leaked_words) if leaked_words else "None",
                         "Leak": leak_status  # 0 = No Leak, 1 = Leak
                     })
-                    
-            # Display Results
+
+            # Convert results to DataFrame
             results_df = pd.DataFrame(results)
+
+            if not results_df.empty:
+                st.write("### Test Results (Leaked PII Detected)")
+                st.dataframe(results_df)
+
+                # Save results to a CSV file
+                results_filename = f"{selected_csv.replace('.csv', '')}-{selected_model}-results.csv"
+                results_filepath = os.path.join(test_scripts_dir, results_filename)
+                results_df.to_csv(results_filepath, index=False)
+
+                st.success(f"Results saved to: {results_filename}")
+                st.download_button(
+                    label="Download Results CSV",
+                    data=results_df.to_csv(index=False).encode("utf-8"),
+                    file_name=results_filename,
+                    mime="text/csv",
+                )
+            else:
+                st.success("No PII detected in model outputs!")
 
     else:
         st.error("Please select a CSV file for testing.")
