@@ -1,4 +1,6 @@
 import streamlit as st
+import os
+import pandas as pd
 from openai import OpenAI
 
 # Streamlit App title
@@ -25,15 +27,35 @@ def query_openrouter(model, prompt):
         completion = client.chat.completions.create(
             model=model,
             messages=[{"role": "user", "content": prompt}],
-            extra_headers={
-                "HTTP-Referer": "https://yourwebsite.com",  # Replace with your site URL (optional)
-                "X-Title": "Efficacy of Guardrails for Large Language Models Dashboard"         # Replace with your site name/title (optional)
-            }
         )
         return completion.choices[0].message.content
     except Exception as e:
         st.error(f"API Error: {e}")
         return None
+
+# List available CSV files in "TestScripts" directory
+test_scripts_dir = "TestScripts"
+os.makedirs(test_scripts_dir, exist_ok=True)  # Ensure directory exists
+csv_files = [f for f in os.listdir(test_scripts_dir) if f.endswith(".csv")]
+
+# Allow user to upload their own CSV
+uploaded_file = st.file_uploader("Upload your CSV", type=["csv"])
+
+if uploaded_file:
+    uploaded_filename = os.path.join(test_scripts_dir, uploaded_file.name)
+    with open(uploaded_filename, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+    csv_files.append(uploaded_file.name)  # Add uploaded file to dropdown options
+
+# Dropdown to select CSV file
+selected_csv = st.selectbox("Select a CSV file for testing:", csv_files)
+
+# Display selected CSV content
+if selected_csv:
+    csv_path = os.path.join(test_scripts_dir, selected_csv)
+    df = pd.read_csv(csv_path)
+    st.write(f"### Preview of {selected_csv}")
+    st.dataframe(df)
 
 # Streamlit Interface
 selected_model = st.selectbox("Select LLM Model:", MODEL_OPTIONS)
