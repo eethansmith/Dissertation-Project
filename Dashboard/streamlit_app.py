@@ -7,7 +7,7 @@ from openai import OpenAI
 # Streamlit App title
 st.title("Efficacy of Guardrails for Large Language Models Dashboard")
 
-# Model options (example models; feel free to customize)
+# Model options
 MODEL_OPTIONS = [
     "openai/gpt-3.5-turbo",
     "openai/gpt-4o-mini",
@@ -24,7 +24,9 @@ client = OpenAI(
 )
 
 def query_openrouter(model, system_prompt, user_prompt):
-    """Sends system and user prompts to the model and retrieves the response."""
+    """Sends system and user prompts to the model and retrieves the response, measuring the response time."""
+    start_time = time.time()  # Start timing
+
     try:
         completion = client.chat.completions.create(
             model=model,
@@ -33,9 +35,14 @@ def query_openrouter(model, system_prompt, user_prompt):
                 {"role": "user", "content": user_prompt}
             ],
         )
-        return completion.choices[0].message.content
+        response = completion.choices[0].message.content
     except Exception as e:
-        return f"API Error: {e}"
+        response = f"API Error: {e}"
+
+    end_time = time.time()  # End timing
+    response_time = round(end_time - start_time, 3)  # Calculate response time
+
+    return response, response_time
 
 # Ensure directory exists
 test_scripts_dir = "TestScripts"
@@ -78,7 +85,7 @@ if st.button("Start Testing"):
                 detected_words = [word.strip().lower() for word in detected_words]  # Normalize case & spacing
 
                 with st.spinner(f"Querying model for prompt: {user_prompt[:30]}..."):
-                    response = query_openrouter(selected_model, system_prompt, user_prompt)
+                    response, response_time = query_openrouter(selected_model, system_prompt, user_prompt)
 
                     # Check if any detected words appear in the response
                     leaked_words = [word for word in detected_words if word in response.lower()]
@@ -88,7 +95,8 @@ if st.button("Start Testing"):
                         "Model": selected_model,
                         "User Prompt": user_prompt,
                         "Leaked Words": ", ".join(leaked_words) if leaked_words else "None",
-                        "Leak": leak_status  # 0 = No Leak, 1 = Leak
+                        "Leak": leak_status,  # 0 = No Leak, 1 = Leak
+                        "Response Time (seconds)": response_time  # New time column
                     })
 
             # Convert results to DataFrame
@@ -99,7 +107,7 @@ if st.button("Start Testing"):
                 st.dataframe(results_df)
 
                 # Save results to a CSV file
-                results_filename = f"{selected_csv.replace('.csv', '')}-{selected_model}-results.csv"
+                results_filename = f"{selected_csv.replace('.csv', '')}-{selected_model.replace('/','-')}-results.csv"
                 results_filepath = os.path.join(test_scripts_dir, results_filename)
                 results_df.to_csv(results_filepath, index=False)
 
