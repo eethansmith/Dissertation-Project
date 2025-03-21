@@ -138,6 +138,13 @@ def main():
             tester.process_csv(selected_csv, selected_model)
         else:
             st.error("Please select a CSV file for testing.")
+    
+    # Load the visualization from the HTML file
+    with open("visualization.html", "r", encoding="utf-8") as f:
+        html_code = f.read()
+
+    # Render the HTML inside the Streamlit app
+    st.components.v1.html(html_code, height=500, scrolling=True)
 
 
 # Run the Streamlit App
