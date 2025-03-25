@@ -4,6 +4,10 @@ import pandas as pd
 import time
 from openai import OpenAI
 
+## Guardrails AI Import
+from guardrails.hub import DetectPII
+from guardrails import Guard
+
 # Constants
 MODEL_OPTIONS = [
     "openai/gpt-3.5-turbo",
@@ -75,32 +79,66 @@ class GuardrailsTester:
         st.write("### Running Tests...")
         results = []
 
+        # Initialize Guardrails
+        pii_guard = Guard().use(
+            DetectPII, ["EMAIL_ADDRESS", "PHONE_NUMBER", "PERSON", "CREDIT_CARD"], "fix"
+        )
+
         for _, row in df.iterrows():
             system_prompt = str(row["System Prompt"])
             user_prompt = str(row["User Prompt"])
             detected_words = [word.strip().lower() for word in str(row["Detected"]).split(",")]
 
             with st.spinner(f"Querying model for prompt: {user_prompt[:30]}..."):
-                response, response_time = self.query_openrouter(selected_model, system_prompt, user_prompt)
+                # Time 1: Get raw model response
+                raw_response_start = time.time()
+                raw_response, response_time = self.query_openrouter(selected_model, system_prompt, user_prompt)
+                raw_response_end = time.time()
 
-                # Detect leaked words
-                leaked_words = [word for word in detected_words if word in response.lower()]
-                leak_status = 1 if leaked_words else 0
-                
+                # Manual keyword leak detection (Raw)
+                raw_leaked_words = [word for word in detected_words if word in raw_response.lower()]
+                raw_leak_status = 1 if raw_leaked_words else 0
+
+                # Time 2: Apply Guardrails
+                guardrails_start = time.time()
+                try:
+                    validation_result = pii_guard.validate(raw_response)
+                    guardrails_output = validation_result.validated_output
+                except Exception:
+                    guardrails_output = "PII Detected – Output suppressed"
+                guardrails_end = time.time()
+
+                # Manual keyword leak detection (Guardrails output)
+                guard_leaked_words = [word for word in detected_words if word in guardrails_output.lower()]
+                guard_leak_status = 1 if guard_leaked_words else 0
+
+                # Measure timing
+                guardrails_time = round(guardrails_end - guardrails_start, 3)
+                total_response_time = round(raw_response_end - raw_response_start, 3)
+
                 results.append({
                     "Model": selected_model,
                     "User Prompt": user_prompt,
-                    "Leaked Words": ", ".join(leaked_words) if leaked_words else "None",
-                    "Leak": leak_status,
-                    "Response Time (seconds)": response_time
+                    "Raw Response": raw_response,
+                    "Guardrails Output": guardrails_output,
+                    "Raw Leak (Manual Check)": raw_leak_status,
+                    "Guardrails Leak (Manual Check)": guard_leak_status,
+                    "Raw Response Time (seconds)": total_response_time,
+                    "Guardrails Time (seconds)": guardrails_time,
                 })
+
 
         # Convert results to DataFrame and display
         results_df = pd.DataFrame(results)
 
         if not results_df.empty:
-            st.write("### Test Results (Leaked PII Detected)")
-            st.dataframe(results_df)
+            st.write("### Test Results")
+            st.dataframe(results_df[[
+                "Model", "User Prompt", "Raw Response", "Guardrails Output",
+                "Raw Leak (Manual Check)", "Guardrails Leak (Manual Check)",
+                "Raw Response Time (seconds)", "Guardrails Time (seconds)"
+            ]])
+
 
             # Save results
             results_filename = f"{selected_csv.replace('.csv', '')}-{selected_model.replace('/','-')}-results.csv"
@@ -139,13 +177,6 @@ def main():
         else:
             st.error("Please select a CSV file for testing.")
     
-    # Load the visualization from the HTML file
-    with open("visualization.html", "r", encoding="utf-8") as f:
-        html_code = f.read()
-
-    # Render the HTML inside the Streamlit app
-    st.components.v1.html(html_code, height=500, scrolling=True)
-
 
 # Run the Streamlit App
 if __name__ == "__main__":
