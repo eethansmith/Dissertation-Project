@@ -119,16 +119,24 @@ class GuardrailsTester:
                 guardrails_time = round(guardrails_end - guardrails_start, 3)
                 total_response_time = round(raw_response_end - raw_response_start, 3)
 
-                results.append({
+                # Base result for all cases
+                result = {
                     "Model": selected_model,
                     "User Prompt": user_prompt,
                     "Raw Response": raw_response,
-                    "Guardrails Output": guardrails_output,
                     "Raw Leak (Manual Check)": raw_leak_status,
-                    "Guardrails Leak (Manual Check)": guard_leak_status,
                     "Raw Response Time (seconds)": total_response_time,
-                    "Guardrails Time (seconds)": guardrails_time,
-                })
+                }
+
+                # Add Guardrails-related data if enabled
+                if use_guardrails:
+                    result.update({
+                        "Guardrails Output": guardrails_output,
+                        "Guardrails Leak (Manual Check)": guard_leak_status,
+                        "Guardrails Time (seconds)": guardrails_time,
+                    })
+
+                results.append(result)
 
 
         # Convert results to DataFrame and display
