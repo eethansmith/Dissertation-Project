@@ -8,6 +8,10 @@ from openai import OpenAI
 from guardrails.hub import DetectPII
 from guardrails import Guard
 
+## LlamaParse Import
+from llama_index.readers.llamaparse import LlamaParseReader
+from llama_index.core import download_loader
+
 # Constants
 MODEL_OPTIONS = [
     "openai/gpt-3.5-turbo",
