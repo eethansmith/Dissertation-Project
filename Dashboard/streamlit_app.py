@@ -8,6 +8,9 @@ from openai import OpenAI
 from guardrails.hub import DetectPII
 from guardrails import Guard
 
+## Lakera Guard Import
+from lakera import Lakera
+
 # Constants
 MODEL_OPTIONS = [
     "openai/gpt-3.5-turbo",
