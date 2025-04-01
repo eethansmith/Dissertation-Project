@@ -1,7 +1,9 @@
-## Lakera Guard Import 
-from lakera import Lakera
+# Lakera_Guard.py
 
-def lakera_pii_check(self, text):
+from lakera import Lakera
+import streamlit as st
+
+def lakera_pii_check(text):
     lakera_client = Lakera(api_key=st.secrets["LAKERA_API_KEY"])
     try:
         response = lakera_client.guardrails.check(prompt=text)

@@ -8,6 +8,12 @@ from openai import OpenAI
 from guardrails.hub import DetectPII
 from guardrails import Guard
 
+# Lakera Guard Import
+from guards.lakera_guard import lakera_pii_check
+
+from guards.guardrails_ai import guardrails_ai_check
+
+
 # Constants
 MODEL_OPTIONS = [
     "openai/gpt-3.5-turbo",
@@ -107,20 +113,18 @@ class GuardrailsTester:
                 # Guardrails AI
                 if use_guardrails:
                     guardrails_start = time.time()
-                    try:
-                        validation_result = pii_guard.validate(raw_response)
-                        guardrails_output = validation_result.validated_output
-                        guard_leaked_words = [word for word in detected_words if word in guardrails_output.lower()]
-                        guard_leak_status = 1 if guard_leaked_words else 0
-                    except Exception:
-                        guardrails_output = "PII Detected – Output suppressed"
+                    guardrails_output, pii_detected = guardrails_ai_check(raw_response)
                     guardrails_end = time.time()
+
+                    guard_leaked_words = [word for word in detected_words if word in guardrails_output.lower()]
+                    guard_leak_status = 1 if pii_detected and guard_leaked_words else 0
                     guardrails_time = round(guardrails_end - guardrails_start, 3)
+
 
                 # Lakera PII Detection
                 elif use_lakera:
                     lakera_start = time.time()
-                    lakera_result, lakera_data = self.lakera_pii_check(raw_response)
+                    lakera_result, lakera_data = lakera_pii_check(raw_response)
                     lakera_output = "Blocked by Lakera" if lakera_result == "blocked" else raw_response
                     guardrails_output = lakera_output
                     guard_leak_status = 1 if lakera_result == "blocked" else 0
