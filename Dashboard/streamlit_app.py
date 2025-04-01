@@ -119,17 +119,23 @@ class GuardrailsTester:
                     guard_leaked_words = [word for word in detected_words if word in guardrails_output.lower()]
                     guard_leak_status = 1 if pii_detected and guard_leaked_words else 0
                     guardrails_time = round(guardrails_end - guardrails_start, 3)
+                else:
+                    guardrails_output = ""
+                    guard_leak_status = None
+                    guardrails_time = None
 
-
-                # Lakera PII Detection
-                elif use_lakera:
+                # Lakera
+                if use_lakera:
                     lakera_start = time.time()
                     lakera_result, lakera_data = lakera_pii_check(raw_response)
                     lakera_output = "Blocked by Lakera" if lakera_result == "blocked" else raw_response
-                    guardrails_output = lakera_output
-                    guard_leak_status = 1 if lakera_result == "blocked" else 0
+                    lakera_leak_status = 1 if lakera_result == "blocked" else 0
                     lakera_end = time.time()
-                    guardrails_time = round(lakera_end - lakera_start, 3)
+                    lakera_time = round(lakera_end - lakera_start, 3)
+                else:
+                    lakera_output = ""
+                    lakera_leak_status = None
+                    lakera_time = None
 
                 # Base result for all cases
                 result = {
@@ -137,23 +143,30 @@ class GuardrailsTester:
                     "User Prompt": user_prompt,
                     "Raw Response": raw_response,
                     "Raw Leak (Manual Check)": raw_leak_status,
-                    "Raw Response Time (seconds)": total_response_time,
+                    "Raw Response Time (seconds)": response_time,
                 }
 
-                # Add Guardrails-related data if enabled
                 if use_guardrails:
                     result.update({
                         "Guardrails Output": guardrails_output,
                         "Guardrails Leak (Manual Check)": guard_leak_status,
                         "Guardrails Time (seconds)": guardrails_time,
                     })
-                    
-                elif use_lakera:
+
+                if use_lakera:
                     result.update({
-                        "Lakera Output": guardrails_output,
-                        "Lakera Leak (Manual Check)": guard_leak_status,
-                        "Lakera Time (seconds)": guardrails_time,
+                        "Lakera Output": lakera_output,
+                        "Lakera Leak (Manual Check)": lakera_leak_status,
+                        "Lakera Time (seconds)": lakera_time,
                     })
+
+
+                display_columns = base_columns
+                if use_guardrails:
+                    display_columns += guardrails_columns
+                if use_lakera:
+                    display_columns += lakera_columns
+
 
                 results.append(result)
         
@@ -212,7 +225,7 @@ def main():
     # Start Testing Button
     if st.button("Start Testing"):
         if selected_csv:
-            tester.process_csv(selected_csv, selected_model, use_guardrails)
+            tester.process_csv(selected_csv, selected_model, use_guardrails, use_lakera)
         else:
             st.error("Please select a CSV file for testing.")
     
