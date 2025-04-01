@@ -8,9 +8,6 @@ from openai import OpenAI
 from guardrails.hub import DetectPII
 from guardrails import Guard
 
-## Lakera Guard Import
-from lakera import Lakera
-
 # Constants
 MODEL_OPTIONS = [
     "openai/gpt-3.5-turbo",
@@ -69,7 +66,7 @@ class GuardrailsTester:
         response_time = round(time.time() - start_time, 3)  # Compute response time
         return response, response_time
     
-    def process_csv(self, selected_csv, selected_model, use_guardrails=True):
+    def process_csv(self, selected_csv, selected_model, use_guardrails=True, use_lakera=False):
         """Process the selected CSV, run tests, and display results."""
         csv_path = os.path.join(TEST_SCRIPTS_DIR, selected_csv)
         df = pd.read_csv(csv_path)
@@ -102,25 +99,33 @@ class GuardrailsTester:
                 raw_leaked_words = [word for word in detected_words if word in raw_response.lower()]
                 raw_leak_status = 1 if raw_leaked_words else 0
 
+                # Default: copy raw response as fallback
+                guardrails_output = raw_response
+                guard_leak_status = 0
+                guardrails_time = 0.0
+
+                # Guardrails AI
                 if use_guardrails:
                     guardrails_start = time.time()
                     try:
                         validation_result = pii_guard.validate(raw_response)
                         guardrails_output = validation_result.validated_output
+                        guard_leaked_words = [word for word in detected_words if word in guardrails_output.lower()]
+                        guard_leak_status = 1 if guard_leaked_words else 0
                     except Exception:
                         guardrails_output = "PII Detected – Output suppressed"
                     guardrails_end = time.time()
-                else:
-                    guardrails_output = raw_response  # Just copy the raw output
-                    guardrails_start = guardrails_end = time.time()
+                    guardrails_time = round(guardrails_end - guardrails_start, 3)
 
-                # Manual keyword leak detection (Guardrails output)
-                guard_leaked_words = [word for word in detected_words if word in guardrails_output.lower()]
-                guard_leak_status = 1 if guard_leaked_words else 0
-
-                # Measure timing
-                guardrails_time = round(guardrails_end - guardrails_start, 3)
-                total_response_time = round(raw_response_end - raw_response_start, 3)
+                # Lakera PII Detection
+                elif use_lakera:
+                    lakera_start = time.time()
+                    lakera_result, lakera_data = self.lakera_pii_check(raw_response)
+                    lakera_output = "Blocked by Lakera" if lakera_result == "blocked" else raw_response
+                    guardrails_output = lakera_output
+                    guard_leak_status = 1 if lakera_result == "blocked" else 0
+                    lakera_end = time.time()
+                    guardrails_time = round(lakera_end - lakera_start, 3)
 
                 # Base result for all cases
                 result = {
@@ -137,6 +142,13 @@ class GuardrailsTester:
                         "Guardrails Output": guardrails_output,
                         "Guardrails Leak (Manual Check)": guard_leak_status,
                         "Guardrails Time (seconds)": guardrails_time,
+                    })
+                    
+                elif use_lakera:
+                    result.update({
+                        "Lakera Output": guardrails_output,
+                        "Lakera Leak (Manual Check)": guard_leak_status,
+                        "Lakera Time (seconds)": guardrails_time,
                     })
 
                 results.append(result)
@@ -189,8 +201,9 @@ def main():
     selected_csv = st.selectbox("Select a CSV file for testing:", tester.csv_files)
     selected_model = st.selectbox("Select LLM Model:", MODEL_OPTIONS)
 
-    # Guardrails selection
+    # Guardrail Selection
     use_guardrails = st.checkbox("GuardrailsAI - PII Detection", value=True)
+    use_lakera = st.checkbox("Lakera Guard - Data Leakage", value=True)
 
     # Start Testing Button
     if st.button("Start Testing"):
