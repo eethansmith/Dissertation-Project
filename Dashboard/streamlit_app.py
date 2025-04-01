@@ -70,6 +70,20 @@ class GuardrailsTester:
         response_time = round(time.time() - start_time, 3)  # Compute response time
         return response, response_time
     
+    def parse_with_llamaparse(self, file):
+        """Use LlamaParse to extract structured text from PDF."""
+        api_key = st.secrets["LLAMAPARSE_API_KEY"]
+        parser = LlamaParseReader(api_key=api_key)
+
+        with st.spinner("Parsing document with LlamaParse..."):
+            try:
+                parsed_docs = parser.load_data([file])
+                return parsed_docs[0].text  # Return raw extracted text
+            except Exception as e:
+                st.error(f"Failed to parse document: {e}")
+                return None
+
+    
     def process_csv(self, selected_csv, selected_model, use_guardrails=True):
         """Process the selected CSV, run tests, and display results."""
         csv_path = os.path.join(TEST_SCRIPTS_DIR, selected_csv)
