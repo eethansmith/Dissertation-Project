@@ -66,7 +66,7 @@ class GuardrailsTester:
         response_time = round(time.time() - start_time, 3)  # Compute response time
         return response, response_time
     
-    def process_csv(self, selected_csv, selected_model):
+    def process_csv(self, selected_csv, selected_model, use_guardrails=True):
         """Process the selected CSV, run tests, and display results."""
         csv_path = os.path.join(TEST_SCRIPTS_DIR, selected_csv)
         df = pd.read_csv(csv_path)
@@ -99,14 +99,17 @@ class GuardrailsTester:
                 raw_leaked_words = [word for word in detected_words if word in raw_response.lower()]
                 raw_leak_status = 1 if raw_leaked_words else 0
 
-                # Time 2: Apply Guardrails
-                guardrails_start = time.time()
-                try:
-                    validation_result = pii_guard.validate(raw_response)
-                    guardrails_output = validation_result.validated_output
-                except Exception:
-                    guardrails_output = "PII Detected – Output suppressed"
-                guardrails_end = time.time()
+                if use_guardrails:
+                    guardrails_start = time.time()
+                    try:
+                        validation_result = pii_guard.validate(raw_response)
+                        guardrails_output = validation_result.validated_output
+                    except Exception:
+                        guardrails_output = "PII Detected – Output suppressed"
+                    guardrails_end = time.time()
+                else:
+                    guardrails_output = raw_response  # Just copy the raw output
+                    guardrails_start = guardrails_end = time.time()
 
                 # Manual keyword leak detection (Guardrails output)
                 guard_leaked_words = [word for word in detected_words if word in guardrails_output.lower()]
@@ -170,10 +173,13 @@ def main():
     selected_csv = st.selectbox("Select a CSV file for testing:", tester.csv_files)
     selected_model = st.selectbox("Select LLM Model:", MODEL_OPTIONS)
 
+    # Guardrails toggle
+    use_guardrails = st.checkbox("Enable Guardrails PII Detection", value=True)
+
     # Start Testing Button
     if st.button("Start Testing"):
         if selected_csv:
-            tester.process_csv(selected_csv, selected_model)
+            tester.process_csv(selected_csv, selected_model, use_guardrails)
         else:
             st.error("Please select a CSV file for testing.")
     
