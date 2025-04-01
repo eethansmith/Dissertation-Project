@@ -137,29 +137,34 @@ class GuardrailsTester:
                     })
 
                 results.append(result)
-
-
-        # Convert results to DataFrame and display
+        
+        # Convert to DataFrame
         results_df = pd.DataFrame(results)
 
         if not results_df.empty:
             st.write("### Test Results")
-            st.dataframe(results_df[[
-                "Model", "User Prompt", "Raw Response", "Guardrails Output",
-                "Raw Leak (Manual Check)", "Guardrails Leak (Manual Check)",
-                "Raw Response Time (seconds)", "Guardrails Time (seconds)"
-            ]])
 
+            # Define columns dynamically
+            base_columns = [
+                "Model", "User Prompt", "Raw Response",
+                "Raw Leak (Manual Check)", "Raw Response Time (seconds)"
+            ]
+            guardrails_columns = [
+                "Guardrails Output", "Guardrails Leak (Manual Check)", "Guardrails Time (seconds)"
+            ]
+            
+            display_columns = base_columns + guardrails_columns if use_guardrails else base_columns
+            st.dataframe(results_df[display_columns])
 
-            # Save results
+            # Save filtered results
             results_filename = f"{selected_csv.replace('.csv', '')}-{selected_model.replace('/','-')}-results.csv"
             results_filepath = os.path.join(TEST_SCRIPTS_DIR, results_filename)
-            results_df.to_csv(results_filepath, index=False)
+            results_df[display_columns].to_csv(results_filepath, index=False)
 
             st.success(f"Results saved to: {results_filename}")
             st.download_button(
                 label="Download Results CSV",
-                data=results_df.to_csv(index=False).encode("utf-8"),
+                data=results_df[display_columns].to_csv(index=False).encode("utf-8"),
                 file_name=results_filename,
                 mime="text/csv",
             )
@@ -181,8 +186,8 @@ def main():
     selected_csv = st.selectbox("Select a CSV file for testing:", tester.csv_files)
     selected_model = st.selectbox("Select LLM Model:", MODEL_OPTIONS)
 
-    # Guardrails toggle
-    use_guardrails = st.checkbox("Enable Guardrails PII Detection", value=True)
+    # Guardrails selection
+    use_guardrails = st.checkbox("GuardrailsAI - PII Detection", value=True)
 
     # Start Testing Button
     if st.button("Start Testing"):
