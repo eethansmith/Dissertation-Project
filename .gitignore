@@ -4,11 +4,6 @@
 # Streamlit config
 .streamlit/
 
-# Python cache files
-__pycache__/
-**/__pycache__/
-*.py[cod]
-
-# Cache in specific folders
+__pycache__
 Dashboard/__pycache__/
 Dashboard/guards/__pycache__/
