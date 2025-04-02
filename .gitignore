@@ -1,5 +1,14 @@
-.streamlit/
+# Virtual environment
 .venv/
-.__pycache__/
-.Dashboard/__pycache__/
-.Dashboard/guards/__pycache__/
+
+# Streamlit config
+.streamlit/
+
+# Python cache files
+__pycache__/
+**/__pycache__/
+*.py[cod]
+
+# Cache in specific folders
+Dashboard/__pycache__/
+Dashboard/guards/__pycache__/
