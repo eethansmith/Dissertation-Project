@@ -1,3 +1,2 @@
 matplotlib==3.9.2
-guardrails-ai 
-lakera
+requests

@@ -14,20 +14,6 @@ from guards.lakera_guard import lakera_pii_check
 from guards.guardrails_ai import guardrails_ai_check
 
 
-# Constants
-MODEL_OPTIONS = [
-    "openai/gpt-3.5-turbo",
-    "openai/gpt-4o-mini",
-    "google/gemini-pro",
-    "anthropic/claude-3-haiku",
-    "deepseek/deepseek-chat:free",
-    "meta-llama/llama-3-8b-instruct"
-]
-
-TEST_SCRIPTS_DIR = "TestScripts"
-os.makedirs(TEST_SCRIPTS_DIR, exist_ok=True)  # Ensure directory exists
-
-
 class GuardrailsTester:
     """Class to handle guardrail testing for Large Language Models."""
     
@@ -96,33 +82,33 @@ class GuardrailsTester:
             detected_words = [word.strip().lower() for word in str(row["Detected"]).split(",")]
 
             with st.spinner(f"Querying model for prompt: {user_prompt[:30]}..."):
-                # Time 1: Get raw model response
+                # Query LLM and measure time
                 raw_response_start = time.time()
                 raw_response, response_time = self.query_openrouter(selected_model, system_prompt, user_prompt)
                 raw_response_end = time.time()
 
-                # Manual keyword leak detection (Raw)
+                # Check for raw leak
                 raw_leaked_words = [word for word in detected_words if word in raw_response.lower()]
                 raw_leak_status = 1 if raw_leaked_words else 0
 
-                # Default: copy raw response as fallback
+                # Init default values
                 guardrails_output = raw_response
                 guard_leak_status = 0
                 guardrails_time = 0.0
+
+                lakera_output = raw_response
+                lakera_leak_status = 0
+                lakera_time = 0.0
 
                 # Guardrails AI
                 if use_guardrails:
                     guardrails_start = time.time()
                     guardrails_output, pii_detected = guardrails_ai_check(raw_response)
                     guardrails_end = time.time()
+                    guardrails_time = round(guardrails_end - guardrails_start, 3)
 
                     guard_leaked_words = [word for word in detected_words if word in guardrails_output.lower()]
                     guard_leak_status = 1 if pii_detected and guard_leaked_words else 0
-                    guardrails_time = round(guardrails_end - guardrails_start, 3)
-                else:
-                    guardrails_output = ""
-                    guard_leak_status = None
-                    guardrails_time = None
 
                 # Lakera
                 if use_lakera:
@@ -132,43 +118,50 @@ class GuardrailsTester:
                     lakera_leak_status = 1 if lakera_result == "blocked" else 0
                     lakera_end = time.time()
                     lakera_time = round(lakera_end - lakera_start, 3)
-                else:
-                    lakera_output = ""
-                    lakera_leak_status = None
-                    lakera_time = None
 
                 # Base result for all cases
-                result = {
-                    "Model": selected_model,
-                    "User Prompt": user_prompt,
-                    "Raw Response": raw_response,
-                    "Raw Leak (Manual Check)": raw_leak_status,
-                    "Raw Response Time (seconds)": response_time,
-                }
+                base_columns = [
+                    "Model", "User Prompt", "Raw Response",
+                    "Raw Leak (Manual Check)", "Raw Response Time (seconds)"
+                ]
 
-                if use_guardrails:
-                    result.update({
-                        "Guardrails Output": guardrails_output,
-                        "Guardrails Leak (Manual Check)": guard_leak_status,
-                        "Guardrails Time (seconds)": guardrails_time,
-                    })
+                guardrails_columns = [
+                    "Guardrails Output", "Guardrails Leak (Manual Check)", "Guardrails Time (seconds)"
+                ]
 
-                if use_lakera:
-                    result.update({
-                        "Lakera Output": lakera_output,
-                        "Lakera Leak (Manual Check)": lakera_leak_status,
-                        "Lakera Time (seconds)": lakera_time,
-                    })
-
-
-                display_columns = base_columns
+                lakera_columns = [
+                    "Lakera Output", "Lakera Leak (Manual Check)", "Lakera Time (seconds)"
+                ]
+                
+                display_columns = base_columns.copy()
                 if use_guardrails:
                     display_columns += guardrails_columns
                 if use_lakera:
                     display_columns += lakera_columns
 
+            result = {
+                "Model": selected_model,
+                "User Prompt": user_prompt,
+                "Raw Response": raw_response,
+                "Raw Leak (Manual Check)": raw_leak_status,
+                "Raw Response Time (seconds)": response_time,
+            }
 
-                results.append(result)
+            if use_guardrails:
+                result.update({
+                    "Guardrails Output": guardrails_output,
+                    "Guardrails Leak (Manual Check)": guard_leak_status,
+                    "Guardrails Time (seconds)": guardrails_time,
+                })
+
+            if use_lakera:
+                result.update({
+                    "Lakera Output": lakera_output,
+                    "Lakera Leak (Manual Check)": lakera_leak_status,
+                    "Lakera Time (seconds)": lakera_time,
+                })
+
+            results.append(result)
         
         # Convert to DataFrame
         results_df = pd.DataFrame(results)
