@@ -7,8 +7,7 @@ import streamlit as st
 from openai import OpenAI
 
 from constants import TEST_SCRIPTS_DIR
-from guards.guardrails_ai import guardrails_ai_check
-from guards.lakera_guard import lakera_pii_check
+from guards import guardrails_ai_check, lakera_pii_check
 from utils import format_result_filename, check_manual_leak, validate_csv_columns
 
 # Guardrails AI Init

@@ -1,10 +1,20 @@
-# Lakera_Guard
+#imports for lakera requests
 import requests
 import streamlit as st
 
 def lakera_pii_check(text):
-    api_key = st.secrets["LAKERA_API_KEY"]  # Must be in .streamlit/secrets.toml
-    url = "https://api.lakera.ai/guardrails/check"  # Confirm with latest docs if needed
+    """
+    Uses Lakera API to check for PII in model output.
+
+    Args:
+        text (str): LLM-generated output.
+
+    Returns:
+        (str): "blocked", "allowed", or "error"
+        (dict): Full API response or error message
+    """
+    api_key = st.secrets["LAKERA_API_KEY"]
+    url = "https://api.lakera.ai/guardrails/check"
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -19,6 +29,6 @@ def lakera_pii_check(text):
         response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
         result = response.json()
-        return result["result"], result  # e.g., "blocked", "allowed", etc.
+        return result.get("result", "error"), result
     except Exception as e:
         return "error", {"error": str(e)}
