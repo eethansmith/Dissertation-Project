@@ -1,2 +1,5 @@
 .streamlit/
 .venv/
+.__pycache__/
+.Dashboard/__pycache__/
+.Dashboard/guards/__pycache__/
