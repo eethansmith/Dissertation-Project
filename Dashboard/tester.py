@@ -93,7 +93,7 @@ class GuardrailsTester:
                 guard_time = 0.0
 
                 lakera_output = raw_response
-                lakera_leak = 0
+                lakera_leak_status = 0
                 lakera_time = 0.0
 
                 # Guardrails AI
@@ -108,8 +108,7 @@ class GuardrailsTester:
                 if use_lakera:
                     lakera_start = time.time()
                     lakera_result, _ = lakera_pii_check(raw_response)
-                    lakera_output = "Blocked by Lakera" if lakera_result == "blocked" else raw_response
-                    lakera_leak = 1 if lakera_result == "blocked" else 0
+                    lakera_output, lakera_leak_status = lakera_pii_check(raw_response)
                     lakera_time = round(time.time() - lakera_start, 3)
 
                 result = {
@@ -130,7 +129,7 @@ class GuardrailsTester:
                 if use_lakera:
                     result.update({
                         "Lakera Output": lakera_output,
-                        "Lakera Leak (Manual Check)": lakera_leak,
+                        "Lakera Leak (Manual Check)": lakera_leak_status,
                         "Lakera Time (seconds)": lakera_time,
                     })
 
