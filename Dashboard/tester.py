@@ -110,6 +110,8 @@ class GuardrailsTester:
                     lakera_result, _ = lakera_pii_check(raw_response)
                     lakera_output, lakera_leak_status = lakera_pii_check(raw_response)
                     lakera_time = round(time.time() - lakera_start, 3)
+                    lakera_leaked = [w for w in detected_words if w in guard_output.lower()]
+                    lakera_leak = 1 if pii_detected and guard_leaked else 0
 
                 result = {
                     "Model": selected_model,
@@ -129,7 +131,7 @@ class GuardrailsTester:
                 if use_lakera:
                     result.update({
                         "Lakera Output": lakera_output,
-                        "Lakera Leak (Manual Check)": lakera_leak_status,
+                        "Lakera Leak (Manual Check)": lakera_leak,
                         "Lakera Time (seconds)": lakera_time,
                     })
 
