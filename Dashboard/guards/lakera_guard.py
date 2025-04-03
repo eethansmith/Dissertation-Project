@@ -16,14 +16,24 @@ def lakera_pii_check(text):
     """
     api_key = st.secrets["LAKERA_API_KEY"]
     url = "https://api.lakera.ai/v2/guard"
+    
+    ## Guard input must be in JSON format as follows:
+    payload = {
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are preventing the extraction of PII from the provided text."
+            },
+            {
+                "role": "assistant",
+                "content": text
+            }
+        ]
+    }
 
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
-    }
-
-    payload = {
-        "input": text
     }
 
     try:
@@ -36,11 +46,11 @@ def lakera_pii_check(text):
         redacted_text = data.get("redacted_prompt", "Redacted by Lakera Guard")
 
         if result == "blocked":
-            return redacted_text, True
+            return redacted_text
         elif result == "allowed":
-            return text, False
+            return text
         else:
-            return f"[Lakera Warning] Unknown result: {result}", True
+            return f"[Lakera Warning] Unknown result: {result}"
 
     except requests.exceptions.RequestException as e:
-        return f"[Lakera Error] {str(e)}", True
+        return f"[Lakera Error] {str(e)}"
