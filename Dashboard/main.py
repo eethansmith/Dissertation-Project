@@ -16,7 +16,11 @@ def main():
     # Dropdowns for CSV and Model Selection
     selected_csv = st.selectbox("Select a CSV file for testing:", tester.csv_files)
     selected_model = st.selectbox("Select LLM Model:", MODEL_OPTIONS)
-
+    
+    # Run Guardrails on raw LLM output or PII Aware LLM Output
+    warn_llm_pii = st.checkbox("Include PII Prevention in LLM Prompt")
+    # Addition: more info to tailor the prompt addition
+    
     # Guardrail Selection
     use_guardrails = st.checkbox("GuardrailsAI - PII Detection", value=True)
     use_lakera = st.checkbox("Lakera Guard - Data Leakage", value=True)
