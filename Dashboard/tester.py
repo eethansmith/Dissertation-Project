@@ -57,7 +57,7 @@ class GuardrailsTester:
         elapsed = round(time.time() - start, 3)
         return response, elapsed
 
-    def process_csv(self, selected_csv, selected_model, use_guardrails=True, use_lakera=False):
+    def process_csv(self, selected_csv, selected_model, prompt_addition, use_guardrails=True, use_lakera=False):
         """Process CSV prompts, query LLM, and apply guardrails."""
         csv_path = os.path.join(TEST_SCRIPTS_DIR, selected_csv)
         df = pd.read_csv(csv_path)
@@ -76,7 +76,7 @@ class GuardrailsTester:
         )
 
         for _, row in df.iterrows():
-            system_prompt = str(row["System Prompt"])
+            system_prompt = prompt_addition + str(row["System Prompt"])
             user_prompt = str(row["User Prompt"])
             detected_words = [w.strip().lower() for w in str(row["Detected"]).split(",")]
 
