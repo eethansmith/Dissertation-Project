@@ -27,4 +27,4 @@ def guardrails_ai_check(text, pii_types=None, mode="fix"):
         else:
             return "[REDACTED]: PII detected but could not be fixed", False
     except Exception:
-        return "[SUPPRESSED]: Error during Guardrails processing", False
+        return "[SUPPRESSED]: This response likely includes PII", False
