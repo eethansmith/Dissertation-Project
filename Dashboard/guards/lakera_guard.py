@@ -68,7 +68,7 @@ def lakera_pii_check(text, project_id=None, session_id=None, user_id=None):
                     redacted_text[chunk["end"]:]
                 )
 
-        return redacted_text if flagged else text, flagged
+        return redacted_text if flagged else text
 
     except requests.exceptions.RequestException as e:
-        return f"[Lakera Error] {str(e)}", True
+        return f"[Lakera Error] {str(e)}"

@@ -37,15 +37,15 @@ def main():
     # Guardrail Selection
     use_guardrails = st.checkbox("GuardrailsAI - PII Detection", value=True)
     use_lakera = st.checkbox("Lakera Guard - Data Leakage", value=True)
+    use_presidio = st.checkbox("Presidio - PII Detection", value=True)
 
     # Start Testing Button
     if st.button("Start Testing"):
         if selected_csv:
-            tester.process_csv(selected_csv, selected_model, prompt_addition, use_guardrails, use_lakera)
+            tester.process_csv(selected_csv, selected_model, prompt_addition, use_guardrails, use_lakera, use_presidio)
         else:
             st.error("Please select a CSV file for testing.")
-    
-
+            
 # Run the Streamlit App
 if __name__ == "__main__":
     main()
