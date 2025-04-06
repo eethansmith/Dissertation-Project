@@ -1,3 +1,5 @@
 matplotlib==3.9.2
 requests
 lakera_chainguard
+presidio-anonymizer
+presidio-analyzer
