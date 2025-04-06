@@ -19,11 +19,20 @@ def main():
     
     # Run Guardrails on raw LLM output or PII Aware LLM Output
     warn_llm_pii = st.checkbox("Include PII Prevention in LLM Prompt")
+
+    default_prompt = (
+        "The following information could include Personally Identifiable Information (PII), "
+        "meaning information that could be used to identify an individual. This may include their name, "
+        "address, personal details, description, or company. As a secure agent, you should prevent any leakage of such information. "
+        "The information is as follows:"
+    )
+
     if warn_llm_pii:
-        prompt_addition = "The following information could include Personally Identifiable Information (PII) meaning information that could be use to identify an individual, this could be their name, address, personal details, description or company, as a secure agent you should prevent this information's leak. The information  is as follows:"
+        with st.expander("🔧 Edit PII Prompt Warning (Optional)"):
+            custom_prompt = st.text_area("Edit the PII warning prompt below:", value=default_prompt, height=150)
+            prompt_addition = custom_prompt
     else:
         prompt_addition = ""
-    # Addition: more info to tailor the prompt addition
     
     # Guardrail Selection
     use_guardrails = st.checkbox("GuardrailsAI - PII Detection", value=True)
