@@ -7,13 +7,8 @@ import streamlit as st
 from openai import OpenAI
 
 from constants import TEST_SCRIPTS_DIR
-from guards import guardrails_ai_check, lakera_pii_check
+from guards import guardrails_ai_check, lakera_pii_check, presidio_pii_check
 from utils import format_result_filename, check_manual_leak, validate_csv_columns
-
-# Guardrails AI Init
-from guardrails.hub import DetectPII
-from guardrails import Guard
-
 
 class GuardrailsTester:
     """Class to handle guardrail testing for Large Language Models."""
@@ -57,7 +52,7 @@ class GuardrailsTester:
         elapsed = round(time.time() - start, 3)
         return response, elapsed
 
-    def process_csv(self, selected_csv, selected_model, prompt_addition, use_guardrails=True, use_lakera=False):
+    def process_csv(self, selected_csv, selected_model, prompt_addition, use_guardrails=False, use_lakera=False, use_presidio=False):
         """Process CSV prompts, query LLM, and apply guardrails."""
         csv_path = os.path.join(TEST_SCRIPTS_DIR, selected_csv)
         df = pd.read_csv(csv_path)
@@ -70,10 +65,6 @@ class GuardrailsTester:
 
         st.write("### Running Tests...")
         results = []
-
-        pii_guard = Guard().use(
-            DetectPII, ["EMAIL_ADDRESS", "PHONE_NUMBER", "PERSON", "CREDIT_CARD"], "fix"
-        )
 
         for _, row in df.iterrows():
             system_prompt = prompt_addition + str(row["System Prompt"])
@@ -93,26 +84,38 @@ class GuardrailsTester:
                 guard_time = 0.0
 
                 lakera_output = raw_response
-                lakera_leak_status = 0
+                lakera_leak = 0
                 lakera_time = 0.0
+                
+                presidio_output = raw_response
+                presidio_leak = 0
+                presidio_time = 0.0
 
                 # Guardrails AI
                 if use_guardrails:
                     guard_start = time.time()
-                    guard_output, pii_detected = guardrails_ai_check(raw_response)
+                    guard_output = guardrails_ai_check(raw_response)
                     guard_time = round(time.time() - guard_start, 3)
                     guard_leaked = [w for w in detected_words if w in guard_output.lower()]
-                    guard_leak = 1 if pii_detected and guard_leaked else 0
+                    guard_leak = 1 if guard_leaked else 0
 
                 # Lakera
                 if use_lakera:
                     lakera_start = time.time()
-                    lakera_result, _ = lakera_pii_check(raw_response)
-                    lakera_output, lakera_leak_status = lakera_pii_check(raw_response)
+                    lakera_result = lakera_pii_check(raw_response)
+                    lakera_output = lakera_pii_check(raw_response)
                     lakera_time = round(time.time() - lakera_start, 3)
-                    lakera_leaked = [w for w in detected_words if w in guard_output.lower()]
-                    lakera_leak = 1 if pii_detected and guard_leaked else 0
-
+                    lakera_leaked = [w for w in detected_words if w in lakera_output.lower()]
+                    lakera_leak = 1 if lakera_leaked else 0
+                
+                # Presidio
+                if use_presidio:
+                    presidio_start = time.time()
+                    presidio_output = presidio_pii_check(raw_response)
+                    presidio_time = round(time.time() - presidio_start, 3)
+                    presidio_leaked = [w for w in detected_words if w in presidio_output.lower()]
+                    presidio_leak = 1 if presidio_leaked else 0
+                
                 result = {
                     "Model": selected_model,
                     "User Prompt": user_prompt,
@@ -133,6 +136,13 @@ class GuardrailsTester:
                         "Lakera Output": lakera_output,
                         "Lakera Leak (Manual Check)": lakera_leak,
                         "Lakera Time (seconds)": lakera_time,
+                    })
+                    
+                if use_presidio:
+                    result.update({
+                        "Presidio Output": presidio_output,
+                        "Presidio Leak (Manual Check)": presidio_leak,
+                        "Presidio Time (seconds)": presidio_time,
                     })
 
                 results.append(result)
@@ -156,6 +166,11 @@ class GuardrailsTester:
         if use_lakera:
             base_cols += [
                 "Lakera Output", "Lakera Leak (Manual Check)", "Lakera Time (seconds)"
+            ]
+            
+        if use_presidio:
+            base_cols += [
+                "Presidio Output", "Presidio Leak (Manual Check)", "Presidio Time (seconds)"
             ]
 
         st.dataframe(results_df[base_cols])
