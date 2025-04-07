@@ -1,24 +1,14 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './Dashboard.css';
 
 const Dashboard = () => {
-  // Sample data for demonstration purposes.
-  const tests = [
-    {
-      model: 'Model A',
-      testSet: ['Test1', 'Test2'],
-      guardrails: ['Guard1', 'Guard2'],
-      timeTaken: 120,
-      date: '10-04-23-15-30'
-    },
-    {
-      model: 'Model B',
-      testSet: ['Test3', 'Test4'],
-      guardrails: ['Guard3'],
-      timeTaken: 95,
-      date: '11-04-23-16-00'
-    }
-  ];
+  const [tests, setTests] = useState([]);
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:5000/api/tests')
+      .then(response => response.json())
+      .then(data => setTests(data));
+  }, []);
 
   return (
     <div className="dashboard-container">
@@ -29,6 +19,7 @@ const Dashboard = () => {
         <table>
           <thead>
             <tr>
+              <th>testID</th>
               <th>Model</th>
               <th>Test Set</th>
               <th>Guardrails</th>
@@ -39,8 +30,9 @@ const Dashboard = () => {
           <tbody>
             {tests.map((test, index) => (
               <tr key={index}>
+                <td>{test.testID}</td>
                 <td>{test.model}</td>
-                <td>{test.testSet.join(', ')}</td>
+                <td>{test.testSet}</td>
                 <td>{test.guardrails.join(', ')}</td>
                 <td>{test.timeTaken}</td>
                 <td>{test.date}</td>
