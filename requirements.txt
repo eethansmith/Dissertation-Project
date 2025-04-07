@@ -3,3 +3,4 @@ requests
 lakera_chainguard
 presidio-anonymizer
 presidio-analyzer
+flask
