@@ -10,11 +10,6 @@ from constants import TEST_SCRIPTS_DIR
 from guards import guardrails_ai_check, lakera_pii_check, presidio_pii_check
 from utils import format_result_filename, check_manual_leak, validate_csv_columns
 
-# Guardrails AI Init
-from guardrails.hub import DetectPII
-from guardrails import Guard
-
-
 class GuardrailsTester:
     """Class to handle guardrail testing for Large Language Models."""
 
@@ -70,10 +65,6 @@ class GuardrailsTester:
 
         st.write("### Running Tests...")
         results = []
-
-        pii_guard = Guard().use(
-            DetectPII, ["EMAIL_ADDRESS", "PHONE_NUMBER", "PERSON", "CREDIT_CARD"], "fix"
-        )
 
         for _, row in df.iterrows():
             system_prompt = prompt_addition + str(row["System Prompt"])
