@@ -11,3 +11,12 @@ The following results are recorded when testing a set script given to the system
 With a range of extracting prompts.
 https://efficacy-of-guardrails.streamlit.app/
 ![image](https://github.com/user-attachments/assets/0fa99353-a382-42cd-a169-fcbb9b87c43b)
+
+
+Backend setup
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+front end - 
+npm start
