@@ -50,6 +50,8 @@ th, td {
   border: 1px solid #ccc;
   padding: 10px;
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 /* Modal overlay covers entire viewport */
@@ -86,4 +88,17 @@ th, td {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+/* Multiline PII prompt textarea */
+.pii-textarea {
+  margin-top: 8px;
+  width: 100%;
+  min-height: 80px; /* Or use rows in JSX */
+  resize: vertical; /* Allows users to drag to resize */
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
 }
