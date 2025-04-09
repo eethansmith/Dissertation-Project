@@ -16,6 +16,7 @@ const Dashboard = () => {
   const [selectedModel, setSelectedModel] = useState(MODEL_OPTIONS[0]);
   const [testScripts, setTestScripts] = useState([]);
   const [selectedTestScript, setSelectedTestScript] = useState('');
+  const [uploadFile, setUploadFile] = useState(null);
 
   useEffect(() => {
     // Fetch test results
@@ -23,7 +24,7 @@ const Dashboard = () => {
       .then(res => res.json())
       .then(data => setTests(data));
 
-    // Fetch test script options for the dropdown (optional, dynamic)
+    // Fetch test script options for the dropdown
     fetch('http://127.0.0.1:5000/api/test-scripts')
       .then(res => res.json())
       .then(data => {
@@ -32,7 +33,50 @@ const Dashboard = () => {
       });
   }, []);
 
-  const handleStartTest = () => {
+  // Handle changes to the test script selection
+  const handleTestScriptChange = (e) => {
+    const value = e.target.value;
+    setSelectedTestScript(value);
+    // If the user chooses the "upload" option, clear any selected file
+    if (value === 'upload-new') {
+      setUploadFile(null);
+    }
+  };
+
+  // Handle the file input change
+  const handleFileChange = (e) => {
+    setUploadFile(e.target.files[0]);
+  };
+
+  // Function to upload the file if one was selected
+  const uploadTestScript = () => {
+    const formData = new FormData();
+    formData.append('file', uploadFile);
+
+    return fetch('http://127.0.0.1:5000/api/upload-test-script', {
+      method: 'POST',
+      body: formData,
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log('File uploaded:', data);
+        // Optionally update the dropdown list:
+        return fetch('http://127.0.0.1:5000/api/test-scripts')
+          .then(res => res.json())
+          .then(newScripts => {
+            setTestScripts(newScripts);
+            setSelectedTestScript(newScripts[newScripts.length - 1]); // Select the new upload
+          });
+      });
+  };
+
+  // Handle Start Test button click
+  const handleStartTest = async () => {
+    // If the user selected the upload option and provided a file, upload it first
+    if (selectedTestScript === 'upload-new' && uploadFile) {
+      await uploadTestScript();
+    }
+
     const payload = {
       model: selectedModel,
       testScript: selectedTestScript
@@ -43,16 +87,16 @@ const Dashboard = () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
-    .then(res => res.json())
-    .then(response => {
-      console.log('Test started:', response);
-      setShowModal(false);
-      // Optionally re-fetch tests or append the new one
-      return fetch('http://127.0.0.1:5000/api/tests')
-        .then(res => res.json())
-        .then(data => setTests(data));
-    })
-    .catch(error => console.error('Error starting test:', error));
+      .then(res => res.json())
+      .then(response => {
+        console.log('Test started:', response);
+        setShowModal(false);
+        // Optionally re-fetch tests (or append the new one)
+        fetch('http://127.0.0.1:5000/api/tests')
+          .then(res => res.json())
+          .then(data => setTests(data));
+      })
+      .catch(error => console.error('Error starting test:', error));
   };
 
   return (
@@ -105,13 +149,31 @@ const Dashboard = () => {
               <select
                 id="test-script"
                 value={selectedTestScript}
-                onChange={e => setSelectedTestScript(e.target.value)}
+                onChange={handleTestScriptChange}
               >
+                {/* Render existing test scripts */}
                 {testScripts.map((script, index) => (
-                  <option key={index} value={script}>{script}</option>
+                  <option key={index} value={script}>
+                    {script}
+                  </option>
                 ))}
+                {/* Option for uploading a new test script */}
+                <option value="upload-new">Upload New Test Script</option>
               </select>
             </div>
+
+            {/* Show file input if "Upload New Test Script" is selected */}
+            {selectedTestScript === 'upload-new' && (
+              <div className="form-group">
+                <label htmlFor="upload-script">Select File:</label>
+                <input
+                  id="upload-script"
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileChange}
+                />
+              </div>
+            )}
 
             <div className="form-group">
               <label htmlFor="model-options">Choose Model:</label>
@@ -121,7 +183,9 @@ const Dashboard = () => {
                 onChange={e => setSelectedModel(e.target.value)}
               >
                 {MODEL_OPTIONS.map((model, index) => (
-                  <option key={index} value={model}>{model}</option>
+                  <option key={index} value={model}>
+                    {model}
+                  </option>
                 ))}
               </select>
             </div>
