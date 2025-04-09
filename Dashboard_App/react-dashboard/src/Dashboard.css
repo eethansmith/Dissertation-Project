@@ -102,3 +102,19 @@ th, td {
   border-radius: 4px;
   box-sizing: border-box;
 }
+
+td {
+  padding: 6px 10px;
+}
+
+td.status-inprogress {
+  color: orange;
+}
+
+td.status-complete {
+  color: green;
+}
+
+td.status-failed {
+  color: red;
+}
