@@ -229,10 +229,11 @@ const Dashboard = () => {
                       value={piiPrompt}
                       onChange={(e) => setPiiPrompt(e.target.value)}
                     />
-
+                    
                   )}
                 </div>
               )}
+              <p> Select the Guardrails you would like to test: </p>
             </div>
 
             <div className="modal-buttons">
