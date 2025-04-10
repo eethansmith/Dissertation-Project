@@ -19,6 +19,7 @@ const Dashboard = () => {
   const [testScripts, setTestScripts] = useState([]);
   const [selectedTestScript, setSelectedTestScript] = useState('');
   const [uploadFile, setUploadFile] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // New state for PII Prevention
   const [includePII, setIncludePII] = useState(false);
@@ -84,19 +85,26 @@ const Dashboard = () => {
   };
 
   const handleStartTest = async () => {
+    setLoading(true); // Start spinner
+  
     if (selectedTestScript === 'upload-new' && uploadFile) {
       await uploadTestScript();
     }
-
+  
     const finalPiiPrompt = includePII ? piiPrompt : "";
-
+  
     const payload = {
       model: selectedModel,
       testScript: selectedTestScript,
       piiPrompt: finalPiiPrompt,
       guardrails: guardrailsOptions
     };
-
+  
+    // ✅ Close the modal and stop spinner immediately
+    setShowModal(false);
+    setLoading(false);
+  
+    // ✅ Kick off the test (fire and forget)
     fetch('http://127.0.0.1:5000/api/start-test', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -105,18 +113,22 @@ const Dashboard = () => {
       .then(res => res.json())
       .then(response => {
         console.log('Test started:', response);
-        setShowModal(false);
-
-        // Wait a moment to ensure backend writes are complete
+  
+        // ✅ Refresh the test table after 3 seconds
         setTimeout(() => {
           fetch('http://127.0.0.1:5000/api/tests')
             .then(res => res.json())
-            .then(data => setTests(data));
-        }, 500); // 500ms delay
+            .then(data => {
+              setTests(data);
+            });
+        }, 3000);
       })
-      .catch(error => console.error('Error starting test:', error));
+      .catch(error => {
+        console.error('Error starting test:', error);
+      });
   };
-
+  
+  
   return (
     <>
       <div className={`dashboard-container ${showModal ? 'blur-background' : ''}`}>
@@ -285,8 +297,13 @@ const Dashboard = () => {
             </div>
 
             <div className="modal-buttons">
-              <button onClick={() => setShowModal(false)}>Cancel</button>
-              <button onClick={handleStartTest}>Begin Test</button>
+              <button onClick={() => setShowModal(false)} disabled={loading}>
+                Cancel
+              </button>
+              <button onClick={handleStartTest} disabled={loading}>
+                {loading ? "Running..." : "Begin Test"}
+              </button>
+              {loading && <div className="loading-spinner" />}
             </div>
           </div>
         </div>
