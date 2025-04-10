@@ -88,10 +88,8 @@ const Dashboard = () => {
       await uploadTestScript();
     }
 
-    // If includePII isn't selected then piiPrompt should be empty
     const finalPiiPrompt = includePII ? piiPrompt : "";
 
-    // Include guardrail test selections in the payload
     const payload = {
       model: selectedModel,
       testScript: selectedTestScript,
@@ -108,9 +106,13 @@ const Dashboard = () => {
       .then(response => {
         console.log('Test started:', response);
         setShowModal(false);
-        fetch('http://127.0.0.1:5000/api/tests')
-          .then(res => res.json())
-          .then(data => setTests(data));
+
+        // Wait a moment to ensure backend writes are complete
+        setTimeout(() => {
+          fetch('http://127.0.0.1:5000/api/tests')
+            .then(res => res.json())
+            .then(data => setTests(data));
+        }, 500); // 500ms delay
       })
       .catch(error => console.error('Error starting test:', error));
   };
