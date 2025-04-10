@@ -5,6 +5,9 @@ from openai import OpenAI
 from guards import guardrails_ai_check, lakera_pii_check, presidio_pii_check
 from utils import check_manual_leak, validate_csv_columns
 
+from dotenv import load_dotenv
+load_dotenv()
+
 TEST_SCRIPTS_DIR = "test-scripts"
 os.makedirs(TEST_SCRIPTS_DIR, exist_ok=True)
 

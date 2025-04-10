@@ -12,3 +12,4 @@ guardrails.hub
 requests
 presidio_analyzer
 presidio_anonymizer
+python-dotenv

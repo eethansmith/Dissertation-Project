@@ -1,5 +1,7 @@
+import os
 import requests
-import streamlit as st
+from dotenv import load_dotenv
+load_dotenv()
 
 session = requests.Session()
 
@@ -7,20 +9,13 @@ def lakera_pii_check(text, project_id=None, session_id=None, user_id=None):
     """
     Calls the Lakera Guard v2 API with a messages-based structure.
     Detects whether the assistant output contains PII or policy violations.
-    
-    Args:
-        text (str): LLM-generated assistant response to check.
-        project_id (str): Optional Lakera project ID.
-        session_id (str): Optional session tracking.
-        user_id (str): Optional user tracking.
-
-    Returns:
-        Tuple[str, bool, dict]: (Possibly redacted) text, PII flag, breakdown metadata.
     """
-    api_key = st.secrets["LAKERA_API_KEY"]
+    api_key = os.getenv("LAKERA_API_KEY")
+    if not api_key:
+        return "[Lakera Error] LAKERA_API_KEY not found in environment variables"
+
     url = "https://api.lakera.ai/v2/guard"
 
-    # Format messages for Lakera
     payload = {
         "messages": [
             {
@@ -35,7 +30,6 @@ def lakera_pii_check(text, project_id=None, session_id=None, user_id=None):
         "payload": True,
     }
 
-    # Optionally add project + tracking metadata
     if project_id:
         payload["project_id"] = project_id
     if session_id or user_id:
@@ -58,7 +52,6 @@ def lakera_pii_check(text, project_id=None, session_id=None, user_id=None):
         flagged = data.get("flagged", False)
         detected_chunks = data.get("payload", [])
 
-        # Optional: redact detected chunks manually
         redacted_text = text
         if flagged and detected_chunks:
             for chunk in sorted(detected_chunks, key=lambda x: x["start"], reverse=True):
