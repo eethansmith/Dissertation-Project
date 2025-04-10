@@ -1,6 +1,7 @@
 # GuardrailsAI_Guard.py
 
 from guardrails.hub import DetectPII
+from guardrails import Guard
 
 def guardrails_ai_check(text, pii_types=None):
     try:

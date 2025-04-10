@@ -1,4 +1,1 @@
-testID,model,testSet,guardrails,timeTaken,date,prompt,inProgress
-1,openai/gpt-3.5-turbo,example_file,"GuardrailsAI - PII Detection,Lakera Guard - Data Leakage",0,2025-04-09,Dont be an idiot!,True
-2,openai/gpt-3.5-turbo,example_file,Lakera Guard - Data Leakage,0,2025-04-09,,True
-3,openai/gpt-3.5-turbo,example_file,"Lakera Guard - Data Leakage,Presidio - PII Detection",0,2025-04-09,,True
+testID,model,testSet,guardrails,timeTaken,date,piiPrompt,inProgress

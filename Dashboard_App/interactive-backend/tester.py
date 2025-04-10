@@ -2,7 +2,7 @@ import os
 import time
 import pandas as pd
 from openai import OpenAI
-from guards import guardrails_ai_check, lakera_pii_check, presidio_pii_check
+from guards import lakera_pii_check, presidio_pii_check
 from utils import check_manual_leak, validate_csv_columns
 
 from dotenv import load_dotenv
@@ -84,11 +84,11 @@ def run_tests_headless(selected_csv, selected_model, prompt_addition, use_guardr
         presidio_leak = 0
         presidio_time = 0.0
 
-        if use_guardrails:
-            start_guard = time.time()
-            guard_output = guardrails_ai_check(raw_response)
-            guard_time = round(time.time() - start_guard, 3)
-            guard_leak = 1 if any(word in guard_output.lower() for word in detected_words) else 0
+        #if use_guardrails:
+        #    start_guard = time.time()
+        #    guard_output = guardrails_ai_check(raw_response)
+        #    guard_time = round(time.time() - start_guard, 3)
+        #    guard_leak = 1 if any(word in guard_output.lower() for word in detected_words) else 0
 
         if use_lakera:
             start_lakera = time.time()
@@ -109,12 +109,13 @@ def run_tests_headless(selected_csv, selected_model, prompt_addition, use_guardr
             "Raw Leak (Manual Check)": raw_leak,
             "Raw Response Time (seconds)": response_time,
         }
-        if use_guardrails:
-            result.update({
-                "Guardrails Output": guard_output,
-                "Guardrails Leak (Manual Check)": guard_leak,
-                "Guardrails Time (seconds)": guard_time,
-            })
+        #if use_guardrails:
+        #    result.update({
+        #        "Guardrails Output": guard_output,
+        #        "Guardrails Leak (Manual Check)": guard_leak,
+        #        "Guardrails Time (seconds)": guard_time,
+        #    })
+        
         if use_lakera:
             result.update({
                 "Lakera Output": lakera_output,
