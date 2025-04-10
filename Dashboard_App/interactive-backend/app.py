@@ -174,36 +174,44 @@ def start_test():
         return jsonify({'error': str(e)}), 500
 
     # Run tests by calling the headless tester.
-    test_results = run_tests_headless(
-        selected_csv=test_script,
-        selected_model=model,
-        prompt_addition=prompt_addition,
-        use_guardrails=guard_options.get('guardrailsAI', False),
-        use_lakera=guard_options.get('lakeraGuard', False),
-        use_presidio=guard_options.get('presidio', False)
-    )
-    if "error" in test_results:
-        return jsonify({'error': test_results["error"]}), 500
+    from threading import Thread
 
-    results_df = pd.DataFrame(test_results["results"])
-    results_filename = os.path.join(TEST_RESULTS_DIR, f"{test_id}.csv")
+    def background_test_runner(test_id, test_script, model, prompt_addition, guard_options, csv_filename):
+        test_results = run_tests_headless(
+            selected_csv=test_script,
+            selected_model=model,
+            prompt_addition=prompt_addition,
+            use_guardrails=guard_options.get('guardrailsAI', False),
+            use_lakera=guard_options.get('lakeraGuard', False),
+            use_presidio=guard_options.get('presidio', False)
+        )
 
-    try:
-        results_df.to_csv(results_filename, index=False)
-    except Exception as e:
-        print(f"Error saving results CSV: {e}")
+        if "error" in test_results:
+            print(f"Test failed: {test_results['error']}")
+            return
 
-    total_time = test_results.get("total_time", 0)
-    # Update the test record with total time and mark as completed.
-    update_test_record(csv_filename, test_id, total_time, False)
+        results_df = pd.DataFrame(test_results["results"])
+        results_filename = os.path.join(TEST_RESULTS_DIR, f"{test_id}.csv")
 
+        try:
+            results_df.to_csv(results_filename, index=False)
+        except Exception as e:
+            print(f"Error saving results CSV: {e}")
+
+        total_time = round(test_results.get("total_time", 0), 0)
+        update_test_record(csv_filename, test_id, total_time, False)
+
+
+    # Run test in background thread
+    thread = Thread(target=background_test_runner, args=(test_id, test_script, model, prompt_addition, guard_options, csv_filename))
+    thread.start()
+
+    # Immediately return a response so the UI doesn't wait
     return jsonify({
-        'message': 'Test completed',
-        'data': new_test,
-        'total_time': total_time,
-        'results_file': f"{test_id}.csv",
-        'results': test_results["results"]
-    })
+        'message': 'Test started',
+        'testID': test_id,
+        'status': 'inProgress'
+    }), 202
 
 if __name__ == '__main__':
     app.run(debug=True)
