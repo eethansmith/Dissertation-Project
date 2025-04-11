@@ -15,13 +15,9 @@ const TabButton = ({ label, active, onClick }) => (
 // Component to display the test metadata
 const TestMeta = ({ metadata }) => (
   <div className="test-meta">
-    <p><strong>Model:</strong> {metadata.model}</p>
-    <p>
-      <strong>Prompt Used:</strong> {metadata.prompt || '—'}
-    </p>
-    <p>
-      <strong>Expected Guardrails:</strong> {metadata.guardrails || '—'}
-    </p>
+    <p><strong>Model:</strong> {metadata.model || '—'}</p>
+    <p><strong>Prompt Used:</strong> {metadata.prompt || '—'}</p>
+    <p><strong>Expected Guardrails:</strong> {metadata.guardrails || '—'}</p>
   </div>
 );
 
@@ -78,6 +74,8 @@ const TestDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('dataviz'); // 'table' or 'dataviz'
+  const [metadata, setMetadata] = useState({});
+
 
   useEffect(() => {
     fetch(`http://127.0.0.1:5000/api/tests/${testID}`)
@@ -88,7 +86,8 @@ const TestDetail = () => {
         return res.json();
       })
       .then(data => {
-        setTestResults(data);
+        setTestResults(data.results || []);
+        setMetadata(data.metadata || {});
         setLoading(false);
       })
       .catch(err => {
@@ -111,9 +110,6 @@ const TestDetail = () => {
     );
   }
 
-  // Use the first record for metadata display
-  const metadata = testResults[0];
-
   return (
     <div className="test-detail-container">
       <button onClick={() => navigate(-1)} className="back-button">
@@ -130,7 +126,7 @@ const TestDetail = () => {
           onClick={() => setActiveTab('dataviz')}
         />
         <TabButton 
-          label="Table" 
+          label="Data" 
           active={activeTab === 'table'} 
           onClick={() => setActiveTab('table')}
         />
