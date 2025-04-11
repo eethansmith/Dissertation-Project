@@ -5,5 +5,9 @@
 .streamlit/
 
 __pycache__
-Dashboard/__pycache__/
-Dashboard/guards/__pycache__/
+Dashboard_Streamlit/__pycache__/
+Dashboard_Streamlit/guards/__pycache__/
+
+Dashboard_App/interactive-backend/venv
+
+Dashboard_App/interactive-backend/.env

@@ -1,0 +1,133 @@
+/* Container and back button styles */
+.test-detail-container {
+    padding: 20px;
+  }
+  
+  .back-button {
+    margin-bottom: 1rem;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+  }
+  
+  /* Tab Buttons */
+  .tabs {
+    margin-bottom: 20px;
+  }
+  
+  .tab-button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    margin-right: 10px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    transition: background-color 0.3s;
+  }
+  
+  .tab-button:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .tab-button.active {
+    background-color: #ddd;
+    border-bottom: none;
+  }
+  
+  /* Test Meta Info */
+  .test-meta {
+    margin-bottom: 20px;
+  }
+  
+  .test-meta p {
+    margin: 5px 0;
+  }
+  
+  .results-table-wrapper {
+    overflow-x: auto;
+    position: relative;
+    z-index: 1;
+  }
+  
+  
+  .results-table-container table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: auto;
+    table-layout: fixed;
+  }
+  
+  .results-table-container th,
+  .results-table-container td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+    word-wrap: break-word;
+    max-width: 200px;
+    position: relative;
+  }
+  
+  .results-table-container th {
+    background-color: #f0f0f0;
+  }
+  
+  .truncate-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+  }
+  
+  .truncate-wrapper .tooltip-box {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    max-width: 400px;
+    white-space: pre-wrap;
+    z-index: 999;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(0%);
+    top: 100%;
+    margin-top: 6px;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .truncate-wrapper:hover .tooltip-box {
+    visibility: visible;
+    opacity: 1;
+  }  
+  
+  .tooltip-box {
+    display: none;
+    position: absolute;
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    max-width: 300px;
+    white-space: pre-wrap;
+    z-index: 100;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    top: 100%;
+    left: 0;
+    margin-top: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Data Visualisation Placeholder */
+  .data-visualisation-container {
+    padding: 20px;
+    text-align: center;
+    font-style: italic;
+    color: #555;
+  }
+  
