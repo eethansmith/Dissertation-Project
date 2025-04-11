@@ -2,12 +2,82 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './TestDetails.css';
 
+// A simple tab button component
+const TabButton = ({ label, active, onClick }) => (
+  <button
+    className={`tab-button ${active ? 'active' : ''}`}
+    onClick={onClick}
+  >
+    {label}
+  </button>
+);
+
+// Component to display the test metadata
+const TestMeta = ({ metadata }) => (
+  <div className="test-meta">
+    <p><strong>Model:</strong> {metadata.model}</p>
+    <p>
+      <strong>Prompt Used:</strong> {metadata.prompt || '—'}
+    </p>
+    <p>
+      <strong>Expected Guardrails:</strong> {metadata.guardrails || '—'}
+    </p>
+  </div>
+);
+
+// Component that renders the table view of the test results
+const TableView = ({ testResults }) => {
+  return (
+    <div className="results-table-wrapper">
+      <div className="results-table-container">
+        <table>
+          <thead>
+            <tr>
+              {Object.keys(testResults[0]).map((key) => (
+                <th key={key}>{key}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {testResults.map((row, rowIndex) => (
+              <tr key={rowIndex}>
+                {Object.entries(row).map(([key, value], colIndex) => (
+                  <td key={colIndex}>
+                    <div className="truncate-wrapper">
+                      <span className="truncated-text">
+                        {String(value).length > 50
+                          ? String(value).slice(0, 50) + "..."
+                          : String(value)}
+                      </span>
+                      {String(value).length > 50 && (
+                        <div className="tooltip-box">{String(value)}</div>
+                      )}
+                    </div>
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+// Component that renders the Data Visualisation view (placeholder)
+const DataVisualisationView = () => (
+  <div className="data-visualisation-container">
+    <h3>Data Visualisation</h3>
+  </div>
+);
+
 const TestDetail = () => {
   const { testID } = useParams();
+  const navigate = useNavigate();
   const [testResults, setTestResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('dataviz'); // 'table' or 'dataviz'
 
   useEffect(() => {
     fetch(`http://127.0.0.1:5000/api/tests/${testID}`)
@@ -41,6 +111,7 @@ const TestDetail = () => {
     );
   }
 
+  // Use the first record for metadata display
   const metadata = testResults[0];
 
   return (
@@ -49,45 +120,29 @@ const TestDetail = () => {
         Back
       </button>
       <h2>Test Results for ID: {testID}</h2>
-
-      <div className="test-meta">
-        <p><strong>Model:</strong> {metadata.model}</p>
-        <p><strong>Prompt Used:</strong> {metadata.prompt || '—'}</p>
-        <p><strong>Expected Guardrails:</strong> {metadata.guardrails || '—'}</p>
+      <TestMeta metadata={metadata} />
+      
+      {/* Tab Navigation Buttons */}
+      <div className="tabs">
+      <TabButton 
+          label="Data Visualisation" 
+          active={activeTab === 'dataviz'} 
+          onClick={() => setActiveTab('dataviz')}
+        />
+        <TabButton 
+          label="Table" 
+          active={activeTab === 'table'} 
+          onClick={() => setActiveTab('table')}
+        />
       </div>
 
-      <div className="results-table-wrapper">
-        <div className="results-table-container">
-          <table>
-            <thead>
-              <tr>
-                {Object.keys(testResults[0]).map((key) => (
-                  <th key={key}>{key}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {testResults.map((row, rowIndex) => (
-                <tr key={rowIndex}>
-                  {Object.entries(row).map(([key, value], colIndex) => (
-                    <td key={colIndex}>
-                      <div className="truncate-wrapper">
-                        <span className="truncated-text">
-                          {String(value).length > 50
-                            ? String(value).slice(0, 50) + "..."
-                            : String(value)}
-                        </span>
-                        {String(value).length > 50 && (
-                          <div className="tooltip-box">{String(value)}</div>
-                        )}
-                      </div>
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {/* Tab Content */}
+      <div className="tab-content">
+        {activeTab === 'table' ? (
+          <TableView testResults={testResults} />
+        ) : (
+          <DataVisualisationView />
+        )}
       </div>
     </div>
   );
