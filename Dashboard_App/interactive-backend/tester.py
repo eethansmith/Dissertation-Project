@@ -103,7 +103,6 @@ def run_tests_headless(selected_csv, selected_model, prompt_addition, use_guardr
             presidio_leak = 1 if any(word in presidio_output.lower() for word in detected_words) else 0
 
         result = {
-            "Model": selected_model,
             "User Prompt": user_prompt,
             "Raw Response": raw_response,
             "Raw Leak (Manual Check)": raw_leak,
