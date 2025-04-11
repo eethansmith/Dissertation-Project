@@ -1,8 +1,8 @@
 // App.js
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Dashboard from './Dashboard';
-import TestDetail from './TestDetails';
+import Dashboard from './components/Dashboard';
+import TestDetail from './components/TestDetails';
 
 function App() {
   return (
