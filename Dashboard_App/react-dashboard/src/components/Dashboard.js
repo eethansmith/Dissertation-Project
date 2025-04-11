@@ -1,6 +1,5 @@
 // /src/components/Dashboard.js
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import DashboardTable from './DashboardTable';
 import TestModal from './TestModal';
 import { MODEL_OPTIONS, DEFAULT_PROMPT } from '../constants';
@@ -10,10 +9,9 @@ import {
   uploadTestScriptFile,
   startTestApi
 } from '../services/api';
-import './Dashboard.css';
+import './DashboardContainer.css';
 
 const Dashboard = () => {
-  const navigate = useNavigate();
   
   // State variables
   const [tests, setTests] = useState([]);

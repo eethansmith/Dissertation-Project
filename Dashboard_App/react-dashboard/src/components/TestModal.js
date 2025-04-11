@@ -1,6 +1,6 @@
 // /src/components/TestModal.js
 import React from 'react';
-import './Dashboard.css';
+import './TestModal.css';
 
 const TestModal = ({
   testScripts,
