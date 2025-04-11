@@ -24,7 +24,7 @@ const Dashboard = () => {
   // New state for PII Prevention
   const [includePII, setIncludePII] = useState(false);
   const [showPiiEditor, setShowPiiEditor] = useState(false);
-  const [piiPrompt, setPiiPrompt] = useState(defaultPrompt);
+  const [userPrompt, setUserPrompt] = useState(defaultPrompt);
 
   // New state for Guardrail Options
   const [guardrailsOptions, setGuardrailsOptions] = useState({
@@ -91,12 +91,12 @@ const Dashboard = () => {
       await uploadTestScript();
     }
   
-    const finalPiiPrompt = includePII ? piiPrompt : "";
+    const finalUserPrompt = includePII ? userPrompt : "";
   
     const payload = {
       model: selectedModel,
       testScript: selectedTestScript,
-      piiPrompt: finalPiiPrompt,
+      userPrompt: finalUserPrompt,
       guardrails: guardrailsOptions
     };
   
@@ -114,14 +114,24 @@ const Dashboard = () => {
       .then(response => {
         console.log('Test started:', response);
   
-        // ✅ Refresh the test table after 3 seconds
-        setTimeout(() => {
+        // ✅ Poll every 3 seconds until test is complete
+        const pollUntilComplete = () => {
           fetch('http://127.0.0.1:5000/api/tests')
             .then(res => res.json())
             .then(data => {
               setTests(data);
+              const test = data.find(t => t.testID === response.testID);
+              if (test && test.inProgress === true) {
+                setTimeout(pollUntilComplete, 3000); // keep polling
+              }
+            })
+            .catch(err => {
+              console.error("Error polling for test status:", err);
+              setTimeout(pollUntilComplete, 3000); // retry if error
             });
-        }, 3000);
+        };
+
+        pollUntilComplete(); // start polling
       })
       .catch(error => {
         console.error('Error starting test:', error);
@@ -162,7 +172,7 @@ const Dashboard = () => {
                   <td>{test.timeTaken}</td>
                   <td>{test.date}</td>
                   <td>
-                    {(test.prompt || "").trim() !== "" ? "✔" : "✘"}
+                    {(test.piiPrompt || "").trim() !== "" ? "✔" : "✘"}
                   </td>
                   <td>
                     {test.inProgress === true 
@@ -250,8 +260,8 @@ const Dashboard = () => {
                   {showPiiEditor && (
                     <textarea
                       className="pii-textarea"
-                      value={piiPrompt}
-                      onChange={(e) => setPiiPrompt(e.target.value)}
+                      value={userPrompt}
+                      onChange={(e) => setUserPrompt(e.target.value)}
                     />
                   )}
                 </div>
@@ -261,6 +271,51 @@ const Dashboard = () => {
             {/* New Guardrail Test Selection */}
             <div className="form-group">
               <label>Select the Guardrails you would like to test:</label>
+              <div>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="guardrailsAI-Profanity"
+                  />
+                  NeMo Guardrails - Toxicity Filtering
+                </label>
+              </div>
+              <div>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="guardrailsAI-Profanity"
+                  />
+                  NeMo Guardrails - Topic Restrictions
+                </label>
+              </div>
+              <div>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="guardrailsAI-Jailbreak"
+                  />
+                  GuardrailsAI - Jailbreak Response
+                </label>
+              </div>
+              <div>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="guardrailsAI-Profanity"
+                  />
+                  Lakera Rebuff - Response Check
+                </label>
+              </div>
+              <div>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="guardrailsAI-Profanity"
+                  />
+                  GuardrailsAI - Profanity Check
+                </label>
+              </div>
               <div>
                 <label>
                   <input

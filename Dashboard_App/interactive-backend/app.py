@@ -198,7 +198,7 @@ def start_test():
         except Exception as e:
             print(f"Error saving results CSV: {e}")
 
-        total_time = round(test_results.get("total_time", 0), 0)
+        total_time = int(test_results.get("total_time", 0))
         update_test_record(csv_filename, test_id, total_time, False)
 
 
