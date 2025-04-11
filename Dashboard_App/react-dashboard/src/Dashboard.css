@@ -24,12 +24,19 @@
 
 /* Start New Test button styles */
 .new-test-button {
+  font-size: 1rem;
   padding: 10px 20px;
-  background-color: #ffffff;
-  border: 1px solid #ccc;
+  background-color: #007bff; /* or any colour you like */
+  color: white;
+  border: none;
+  border-radius: 5px;
   cursor: pointer;
-  font-size: 16px;
 }
+
+.new-test-button:hover {
+  background-color: #0056b3;
+}
+
 
 /* Table container to center the table */
 .table-container {

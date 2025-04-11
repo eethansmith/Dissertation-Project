@@ -1,0 +1,58 @@
+.test-detail-container table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: auto;
+    table-layout: fixed;
+  }
+  
+  .test-detail-container th,
+  .test-detail-container td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+    word-wrap: break-word;
+    max-width: 200px;
+    position: relative;
+  }
+  
+  .test-detail-container th {
+    background-color: #f0f0f0;
+  }
+  
+  .test-detail-container .back-button {
+    margin-bottom: 1rem;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+  }
+  
+  .test-detail-container .truncate-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+  }
+  
+  .test-detail-container .truncate-wrapper:hover .tooltip-box {
+    display: block;
+  }
+  
+  .test-detail-container .tooltip-box {
+    display: none;
+    position: absolute;
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    max-width: 300px;
+    white-space: pre-wrap;
+    z-index: 100;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    top: 100%;
+    left: 0;
+    margin-top: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  

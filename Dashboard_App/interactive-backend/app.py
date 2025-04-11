@@ -212,6 +212,27 @@ def start_test():
         'testID': test_id,
         'status': 'inProgress'
     }), 202
+    
+# Endpoint to get test results details for a given testID.
+@app.route('/api/tests/<int:test_id>', methods=['GET'])
+def get_test_results(test_id):
+    # Construct the expected file path for the test results CSV.
+    results_filename = os.path.join("test-dataset", f"{test_id}.csv")
+    
+    # Check if the file exists.
+    if not os.path.exists(results_filename):
+        return jsonify({'error': 'Test results not found'}), 404
+    
+    try:
+        # Read CSV file into a Pandas DataFrame.
+        df_results = pd.read_csv(results_filename)
+        # Convert the DataFrame into a list of dictionaries.
+        results_list = df_results.to_dict(orient='records')
+        # Return the results in JSON format.
+        return jsonify(results_list), 200
+    except Exception as e:
+        # In case of any error, return the error message.
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
