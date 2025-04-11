@@ -113,7 +113,7 @@ def start_test():
     model = data.get('model')
     # Assuming the front-end sends the script name without the .csv extension.
     test_script = data.get('testScript') + ".csv"
-    pii_prompt = data.get('piiPrompt', '')
+    pii_prompt = data.get('userPrompt', '')
     guardrails = data.get('guardrails', {})
 
     # Use the pii_prompt as an addition to system prompts if desired.
