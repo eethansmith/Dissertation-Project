@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './TestDetails.css';
+import DataVisualisationGrid from './DataVisualisationGrid';
 
 // A simple tab button component
 const TabButton = ({ label, active, onClick }) => (
@@ -59,13 +60,6 @@ const TableView = ({ testResults }) => {
     </div>
   );
 };
-
-// Component that renders the Data Visualisation view (placeholder)
-const DataVisualisationView = () => (
-  <div className="data-visualisation-container">
-    <h3>Data Visualisation</h3>
-  </div>
-);
 
 const TestDetail = () => {
   const { testID } = useParams();
@@ -137,7 +131,7 @@ const TestDetail = () => {
         {activeTab === 'table' ? (
           <TableView testResults={testResults} />
         ) : (
-          <DataVisualisationView />
+          <DataVisualisationGrid />
         )}
       </div>
     </div>

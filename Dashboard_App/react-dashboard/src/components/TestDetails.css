@@ -130,4 +130,33 @@
     font-style: italic;
     color: #555;
   }
+
+  .data-viz-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: minmax(300px, auto); /* increase the minimum height to 300px (or more) */
+    gap: 20px;
+    width: 100%;
+  }
+  
+  
+  .data-viz-block {
+    border: 1px solid #ccc; /* for visibility; adjust styling as needed */
+    padding: 10px;
+    box-sizing: border-box;
+    background: #fff;
+    position: relative;
+  }
+  
+  @media (max-width: 768px) {
+    .data-viz-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .data-viz-grid {
+      grid-template-columns: 1fr;
+    }
+  }
   
