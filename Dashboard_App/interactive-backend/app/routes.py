@@ -177,3 +177,41 @@ def get_test_results(test_id):
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@api.route('/tests/<int:test_id>/charts', methods=['GET'])
+def get_test_charts(test_id):
+    """
+    API endpoint to return chart data from CSV files for a given test.
+    It reads three CSV files located in:
+        TEST_RESULTS_DIR/<test_id>/pie_chart.csv
+        TEST_RESULTS_DIR/<test_id>/sucess_bar_chart.csv
+        TEST_RESULTS_DIR/<test_id>/question_line_graph.csv
+    and returns their contents as JSON.
+    """
+    charts = {}
+
+    # Define the folder where the test CSVs are saved.
+    test_folder = os.path.join(TEST_RESULTS_DIR, str(test_id))
+
+    # Mapping of keys to their respective CSV filenames.
+    csv_files = {
+        "pieChart": "pie_chart.csv",
+        "successBarChart": "sucess_bar_chart.csv",
+        "questionLineGraph": "question_line_graph.csv"
+    }
+
+    # Process each CSV file
+    for key, filename in csv_files.items():
+        file_path = os.path.join(test_folder, filename)
+        if os.path.exists(file_path):
+            try:
+                df = pd.read_csv(file_path)
+                # Convert DataFrame to list of dict records.
+                charts[key] = df.to_dict(orient='records')
+            except Exception as e:
+                charts[key] = f"Error reading file {filename}: {str(e)}"
+        else:
+            # If the file doesn't exist, return an empty list.
+            charts[key] = []
+
+    return jsonify(charts)

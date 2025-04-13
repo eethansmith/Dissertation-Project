@@ -71,47 +71,70 @@ def process_test_data(test_id):
         print(f"Error saving summary CSV: {e}")
         
         
-        # Create a summary for manual checks (success metrics)
-    success_data = {}
-    
-    # Total raw produced tests = number of rows
-    total_tests = len(df)
-    success_data["Total Raw Produced"] = [total_tests]
-    
-    # Total raw manual checks (sum of 0's and 1's: 1's count as failures)
-    if "Manual Checks" in df.columns:
-        total_manual_raw = df["Manual Checks"].sum()
-    else:
-        total_manual_raw = 0
-    success_data["Total Raw Manual Checks"] = [total_manual_raw]
-    
-    # For each guardrail timing column (if the guardrail was applied, indicated by its existence)
-    guardrail_columns = {
-        "Guardrails Time (seconds)": "Guardrails",
-        "Lakera Time (seconds)": "Lakera",
-        "Presidio Time (seconds)": "Presidio"
-    }
-    
-    for col, label in guardrail_columns.items():
-        if col in df.columns:
-            # Count tests where this guardrail was applied (i.e. non-null entries)
-            guardrail_count = df[col].notna().sum()
-            # Sum the manual checks for those tests (if Manual Checks exists)
-            guardrail_manual = df.loc[df[col].notna(), "Manual Checks"].sum() if "Manual Checks" in df.columns else 0
-            success_data[f"Total {label} Produced"] = [guardrail_count]
-            success_data[f"Total {label} Manual Checks"] = [guardrail_manual]
-    
-    # Create the DataFrame and save as "sucess_bar_chart.csv" in the test folder.
-    success_df = pd.DataFrame(success_data)
+            # --- New Code: Generate sucess_bar_chart.csv ---
+    success_rows = []
+
+    # Only include columns that end with '(Manual Check)'
+    manual_check_cols = [col for col in df.columns if col.endswith("(Manual Check)")]
+
+    for col in manual_check_cols:
+        # Get stage name from column (e.g., 'Raw Leak (Manual Check)' → 'Raw')
+        stage = col.split(" ")[0]
+        passed = (df[col] == 0).sum()
+        failed = (df[col] == 1).sum()
+        success_rows.append({
+            "Stage": stage,
+            "Passed": passed,
+            "Failed": failed
+        })
+
+    # Create DataFrame and save
+    success_df = pd.DataFrame(success_rows)
     success_filename = os.path.join(test_folder, "sucess_bar_chart.csv")
-    
+
     try:
         success_df.to_csv(success_filename, index=False)
-        print(f"Success data processing complete. CSV saved to: {success_filename}")
+        print(f"Success bar chart CSV saved to: {success_filename}")
     except Exception as e:
         print(f"Error saving success CSV: {e}")
+        
+    question_data = {}
 
+    # Create Test Number based on the row index (starting from 1)
+    question_data["Test Number"] = df.index + 1
 
+    # Get the User Prompt column, if it exists.
+    if "User Prompt" in df.columns:
+        question_data["User Prompt"] = df["User Prompt"]
+    else:
+        question_data["User Prompt"] = [""] * len(df)
+
+    # Find all columns that end with "(Manual Check)"
+    manual_check_cols = [col for col in df.columns if col.endswith("(Manual Check)")]
+
+    # For each found manual check column, extract the stage name and copy the column data.
+    for col in manual_check_cols:
+        # Example: "Raw Leak (Manual Check)" → stage = "Raw"
+        stage = col.split(" ")[0]
+        question_data[stage] = df[col]
+
+    # Create DataFrame for the question line graph
+    question_df = pd.DataFrame(question_data)
+
+    # Optionally, force the column order with "Test Number" and "User Prompt" first.
+    # The remaining columns are added in the order they appear.
+    columns_order = ["Test Number", "User Prompt"] + [col for col in question_df.columns if col not in ("Test Number", "User Prompt")]
+    question_df = question_df[columns_order]
+
+    # Save the new CSV to the same test folder with the name "question_line_graph.csv"
+    question_filename = os.path.join(test_folder, "question_line_graph.csv")
+
+    try:
+        question_df.to_csv(question_filename, index=False)
+        print(f"Question line graph CSV saved to: {question_filename}")
+    except Exception as e:
+        print(f"Error saving question line graph CSV: {e}")
+        
 def background_test_runner(test_id, test_script, model, prompt_addition, guard_options, csv_filename):
     """Runs tests in a background thread and then processes the resulting CSV."""
     test_results = run_tests_headless(
