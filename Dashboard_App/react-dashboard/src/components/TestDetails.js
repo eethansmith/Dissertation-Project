@@ -114,14 +114,14 @@ const TestDetail = () => {
       
       {/* Tab Navigation Buttons */}
       <div className="tabs">
-      <TabButton 
-          label="Data Visualisation" 
-          active={activeTab === 'dataviz'} 
+        <TabButton
+          label="Data Visualisation"
+          active={activeTab === 'dataviz'}
           onClick={() => setActiveTab('dataviz')}
         />
-        <TabButton 
-          label="Data" 
-          active={activeTab === 'table'} 
+        <TabButton
+          label="Data"
+          active={activeTab === 'table'}
           onClick={() => setActiveTab('table')}
         />
       </div>

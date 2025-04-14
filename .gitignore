@@ -11,3 +11,4 @@ Dashboard_Streamlit/guards/__pycache__/
 Dashboard_App/interactive-backend/venv
 
 Dashboard_App/interactive-backend/.env
+node_modules
