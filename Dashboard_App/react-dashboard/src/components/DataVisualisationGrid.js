@@ -104,6 +104,9 @@ const BarChartEffectiveness = ({ data }) => {
   const passedData = data.map((item) => item.Passed);
   const failedData = data.map((item) => item.Failed);
 
+  // Compute the maximum total (Passed + Failed) for any stage
+  const maxTotal = Math.max(...data.map(item => item.Passed + item.Failed));
+
   const barData = {
     labels,
     datasets: [
@@ -121,6 +124,7 @@ const BarChartEffectiveness = ({ data }) => {
   };
 
   const options = {
+    maintainAspectRatio: false, // allow chart to fill the container
     plugins: {
       legend: {
         display: true,
@@ -132,10 +136,17 @@ const BarChartEffectiveness = ({ data }) => {
         font: { size: 18 },
       },
     },
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: maxTotal, // force the y-axis maximum to the sum of passed and failed
+      },
+    },
   };
 
   return (
-    <div>
+    // This container will stretch to fill the VizBlock space.
+    <div style={{ width: '100%', height: '100%' }}>
       <Bar data={barData} options={options} />
     </div>
   );
@@ -143,47 +154,63 @@ const BarChartEffectiveness = ({ data }) => {
 
 /**
  * LineChartGuardrails
- * Renders a line chart where the x-axis is the test number,
+ * Renders a line chart where the x-axis is the test number, 
  * and each line represents a guardrail (Raw, Lakera, Presidio).
- * The legend is positioned below the chart.
+ * 
+ * Changes in this version:
+ *  - Transforms the data so that a guardrail originally 0 (Pass) now plots as 1,
+ *    and a guardrail originally 1 (Fail) now plots as 0.
+ *  - The y-axis spans from -1 to 2, but only the 0 and 1 ticks are labeled ("Fail" and "Pass")
+ *    with Pass (1) displayed above Fail (0).
+ *  - When hovering, the tooltip displays the User Prompt on the title line and then the guardrail result,
+ *    using the original (untransformed) data.
+ *  - The chart fills the available space.
  */
 const LineChartGuardrails = ({ data }) => {
+  // Sort data by Test Number.
   const sortedData = [...data].sort(
     (a, b) => a['Test Number'] - b['Test Number']
   );
   const testNumbers = sortedData.map((item) => item['Test Number']);
-  const rawData = sortedData.map((item) => item.Raw);
-  const lakeraData = sortedData.map((item) => item.Lakera);
-  const presidioData = sortedData.map((item) => item.Presidio);
+  
+  // Transform original guardrail values so that:
+  //   Original 0 (Pass) becomes 1, and original 1 (Fail) becomes 0.
+  const rawDataTransformed = sortedData.map(item => 1 - item.Raw);
+  const lakeraDataTransformed = sortedData.map(item => 1 - item.Lakera);
+  const presidioDataTransformed = sortedData.map(item => 1 - item.Presidio);
 
   const lineData = {
     labels: testNumbers,
     datasets: [
       {
         label: 'Raw',
-        data: rawData,
+        data: rawDataTransformed,
         fill: false,
-        borderColor: '#FF6384',
+        borderColor: 'rgba(255, 99, 132, 0.5)',
         tension: 0.1,
+        pointBackgroundColor: 'rgba(255, 99, 132, 0.5)',
       },
       {
         label: 'Lakera',
-        data: lakeraData,
+        data: lakeraDataTransformed,
         fill: false,
-        borderColor: '#36A2EB',
+        borderColor: 'rgba(54, 162, 235, 0.5)',
         tension: 0.1,
+        pointBackgroundColor: 'rgba(54, 162, 235, 0.5)',
       },
       {
         label: 'Presidio',
-        data: presidioData,
+        data: presidioDataTransformed,
         fill: false,
-        borderColor: '#FFCE56',
+        borderColor: 'rgba(255, 206, 86, 0.5)',
         tension: 0.1,
+        pointBackgroundColor: 'rgba(255, 206, 86, 0.5)',
       },
     ],
   };
 
   const options = {
+    maintainAspectRatio: false, // Allow the chart to fill its container.
     plugins: {
       legend: {
         display: true,
@@ -194,15 +221,56 @@ const LineChartGuardrails = ({ data }) => {
         text: 'Guardrail Pass/Fail per Test',
         font: { size: 18 },
       },
+      tooltip: {
+        callbacks: {
+          // Use the User Prompt as the sole title of the tooltip.
+          title: function (context) {
+            if (!context.length) return '';
+            const idx = context[0].dataIndex;
+            const testData = sortedData[idx];
+            return testData?.['User Prompt'] || 'No Prompt Provided';
+          },
+          // Show the guardrail type and the original (untransformed) result.
+          label: function (context) {
+            const idx = context.dataIndex;
+            const testData = sortedData[idx];
+            const originalVal = testData ? testData[context.dataset.label] : null;
+            const resultText =
+              originalVal === 0 ? 'Pass' : originalVal === 1 ? 'Fail' : originalVal;
+            return `${context.dataset.label} Guardrail: ${resultText}`;
+          },
+        },
+      },
+    },
+    scales: {
+      x: {
+        ticks: {
+          autoSkip: false, // Display every test number.
+        },
+      },
+      y: {
+        min: -1,
+        max: 2,
+        ticks: {
+          stepSize: 1,
+          // Label only the 0 and 1 ticks. Here, 0 represents Fail and 1 represents Pass.
+          callback: function (value) {
+            if (value === 0) return 'Fail';
+            if (value === 1) return 'Pass';
+            return ''; // Hide the -1 and 2 labels.
+          },
+        },
+      },
     },
   };
 
   return (
-    <div>
+    <div style={{ width: '100%', height: '100%' }}>
       <Line data={lineData} options={options} />
     </div>
   );
 };
+
 
 ///////////////////////
 // Main Grid Component
