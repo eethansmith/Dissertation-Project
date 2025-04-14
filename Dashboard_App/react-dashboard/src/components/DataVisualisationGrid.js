@@ -29,37 +29,64 @@ ChartJS.register(
   PointElement
 );
 
-///////////////////////
-// Reusable Components
-///////////////////////
+/**
+ * Helper function to extract guardrail names along with average and total values
+ * from a pie chart data object.
+ *
+ * Expected format of keys (works for both with and without "Response"):
+ *   "Average <Guardrail> Response Time (seconds)"  
+ *   "Average <Guardrail> Time (seconds)"
+ * And corresponding:
+ *   "Total <Guardrail> Response Time (seconds)" or
+ *   "Total <Guardrail> Time (seconds)"
+ *
+ * Returns an object { labels, avgValues, totalValues }.
+ */
+const extractGuardrailPieData = (chartDataObj) => {
+  // The regex now captures an optional " Response" part.
+  const guardrailRegex = /^Average (.+?)( Response)? Time \(seconds\)$/;
+  const labels = [];
+  const avgValues = [];
+  const totalValues = [];
+  
+  Object.keys(chartDataObj).forEach((key) => {
+    const match = key.match(guardrailRegex);
+    if (match) {
+      const guardrailName = match[1]; // e.g., "Raw" or "Lakera"
+      const responsePart = match[2] || ""; // Either " Response" or empty string.
+      // Only include if the value is not null/undefined.
+      if (chartDataObj[key] !== undefined && chartDataObj[key] !== null) {
+        labels.push(guardrailName);
+        avgValues.push(chartDataObj[key]);
+        // Construct the corresponding total key.
+        const totalKey = `Total ${guardrailName}${responsePart} Time (seconds)`;
+        totalValues.push(chartDataObj[totalKey] || 0);
+      }
+    }
+  });
+  
+  return { labels, avgValues, totalValues };
+};
 
 /**
  * PieChart
  * Renders a pie chart that displays average values as the visible data.
  * On hover, the tooltip shows both the average and total times (each followed by "seconds")
- * on separate lines, along with an indication like "Raw Output".
+ * on separate lines, along with an indication like "<Guardrail> Output".
  * The legend is displayed beneath the chart.
+ * This version builds the labels and values dynamically – only guardrails that are in the data are shown.
  */
 const PieChart = ({ data }) => {
   const chartDataObj = data[0] || {};
-
-  const avgValues = [
-    chartDataObj["Average Raw Response Time (seconds)"] || 0,
-    chartDataObj["Average Lakera Time (seconds)"] || 0,
-    chartDataObj["Average Presidio Time (seconds)"] || 0,
-  ];
-  const totalValues = [
-    chartDataObj["Total Raw Response Time (seconds)"] || 0,
-    chartDataObj["Total Lakera Time (seconds)"] || 0,
-    chartDataObj["Total Presidio Time (seconds)"] || 0,
-  ];
-
+  const { labels, avgValues, totalValues } = extractGuardrailPieData(chartDataObj);
+  
   const pieData = {
-    labels: ['Raw', 'Lakera', 'Presidio'],
+    labels,
     datasets: [
       {
         data: avgValues,
-        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+        // Use a preset palette—if there are more guardrails, colors will repeat.
+        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
       },
     ],
   };
@@ -68,7 +95,7 @@ const PieChart = ({ data }) => {
     plugins: {
       title: {
         display: true,
-        text: 'Time Distrubution of Testing',
+        text: 'Time Distribution of Testing',
         font: { size: 18 },
       },
       legend: {
@@ -79,9 +106,9 @@ const PieChart = ({ data }) => {
         callbacks: {
           label: function (context) {
             const index = context.dataIndex;
-            const testLabel = context.chart.data.labels[index] || '';
+            const guardrail = context.chart.data.labels[index] || '';
             return [
-              `${testLabel} Output`,
+              `${guardrail} Output`,
               `Avg: ${avgValues[index]} seconds`,
               `Total: ${totalValues[index]} seconds`
             ];
@@ -98,14 +125,19 @@ const PieChart = ({ data }) => {
  * BarChartEffectiveness
  * Renders a grouped bar chart showing, per stage, the number of tests that Passed vs Failed.
  * The legend is positioned below the chart.
+ * This version filters out any stage (row) where both Passed and Failed are zero,
+ * so only guardrails/stages that were actually tested are displayed.
  */
 const BarChartEffectiveness = ({ data }) => {
-  const labels = data.map((item) => item.Stage);
-  const passedData = data.map((item) => item.Passed);
-  const failedData = data.map((item) => item.Failed);
+  // Filter out rows with no testing (i.e. Passed + Failed equals 0).
+  const filteredData = data.filter(item => (item.Passed + item.Failed) > 0);
+  
+  const labels = filteredData.map((item) => item.Stage);
+  const passedData = filteredData.map((item) => item.Passed);
+  const failedData = filteredData.map((item) => item.Failed);
 
-  // Compute the maximum total (Passed + Failed) for any stage
-  const maxTotal = Math.max(...data.map(item => item.Passed + item.Failed));
+  // Compute the maximum total (Passed + Failed) for any stage.
+  const maxTotal = Math.max(...filteredData.map(item => item.Passed + item.Failed));
 
   const barData = {
     labels,
@@ -139,7 +171,7 @@ const BarChartEffectiveness = ({ data }) => {
     scales: {
       y: {
         beginAtZero: true,
-        max: maxTotal, // force the y-axis maximum to the sum of passed and failed
+        max: maxTotal,
       },
     },
   };
@@ -154,63 +186,69 @@ const BarChartEffectiveness = ({ data }) => {
 
 /**
  * LineChartGuardrails
- * Renders a line chart where the x-axis is the test number, 
- * and each line represents a guardrail (Raw, Lakera, Presidio).
  * 
- * Changes in this version:
- *  - Transforms the data so that a guardrail originally 0 (Pass) now plots as 1,
- *    and a guardrail originally 1 (Fail) now plots as 0.
- *  - The y-axis spans from -1 to 2, but only the 0 and 1 ticks are labeled ("Fail" and "Pass")
- *    with Pass (1) displayed above Fail (0).
- *  - When hovering, the tooltip displays the User Prompt on the title line and then the guardrail result,
- *    using the original (untransformed) data.
- *  - The chart fills the available space.
+ * This version:
+ *   1. Dynamically detects which guardrails are in the data (so only those with data appear).
+ *   2. Inverts 0 -> 1 (Pass) and 1 -> 0 (Fail), so Pass is drawn above Fail.
+ *   3. Hides unused guardrails (those that are entirely null/undefined).
+ *   4. Shows the prompt in the tooltip title, with each guardrail’s Pass/Fail on a separate line.
+ *   5. Y-axis goes from -1 to 2, with 0 labeled “Fail,” 1 labeled “Pass,”
+ *      and the outer ticks (-1, 2) hidden but leaving space for readability.
  */
 const LineChartGuardrails = ({ data }) => {
   // Sort data by Test Number.
   const sortedData = [...data].sort(
     (a, b) => a['Test Number'] - b['Test Number']
   );
+
+  // Extract the list of all potential guardrail keys from the first row (excluding known non-guardrail fields).
+  const knownNonGuardrailFields = ['Test Number', 'User Prompt'];
+  const allKeys = sortedData[0] ? Object.keys(sortedData[0]) : [];
+  const guardrailKeys = allKeys.filter(
+    (key) => !knownNonGuardrailFields.includes(key)
+  );
+
+  // Build datasets dynamically for each guardrail that's actually used (non-null/undefined in at least one row).
+  // Invert 0 -> 1 (Pass) and 1 -> 0 (Fail).
+  const colorPalette = [
+    'rgba(255, 99, 132, 0.5)',
+    'rgba(54, 162, 235, 0.5)',
+    'rgba(255, 206, 86, 0.5)',
+    'rgba(75, 192, 192, 0.5)',
+    'rgba(153, 102, 255, 0.5)',
+    'rgba(255, 159, 64, 0.5)',
+  ];
+
+  const isGuardrailUsed = (key) =>
+    sortedData.some((row) => row[key] !== null && row[key] !== undefined);
+
+  const datasets = guardrailKeys
+    .filter(isGuardrailUsed)
+    .map((key, index) => {
+      const color = colorPalette[index % colorPalette.length];
+      return {
+        label: key,
+        data: sortedData.map((row) => {
+          if (row[key] === 0) return 1; // Pass becomes 1.
+          if (row[key] === 1) return 0; // Fail becomes 0.
+          return row[key];
+        }),
+        fill: false,
+        borderColor: color,
+        tension: 0.1,
+        pointBackgroundColor: color,
+      };
+    });
+
   const testNumbers = sortedData.map((item) => item['Test Number']);
-  
-  // Transform original guardrail values so that:
-  //   Original 0 (Pass) becomes 1, and original 1 (Fail) becomes 0.
-  const rawDataTransformed = sortedData.map(item => 1 - item.Raw);
-  const lakeraDataTransformed = sortedData.map(item => 1 - item.Lakera);
-  const presidioDataTransformed = sortedData.map(item => 1 - item.Presidio);
 
   const lineData = {
     labels: testNumbers,
-    datasets: [
-      {
-        label: 'Raw',
-        data: rawDataTransformed,
-        fill: false,
-        borderColor: 'rgba(255, 99, 132, 0.5)',
-        tension: 0.1,
-        pointBackgroundColor: 'rgba(255, 99, 132, 0.5)',
-      },
-      {
-        label: 'Lakera',
-        data: lakeraDataTransformed,
-        fill: false,
-        borderColor: 'rgba(54, 162, 235, 0.5)',
-        tension: 0.1,
-        pointBackgroundColor: 'rgba(54, 162, 235, 0.5)',
-      },
-      {
-        label: 'Presidio',
-        data: presidioDataTransformed,
-        fill: false,
-        borderColor: 'rgba(255, 206, 86, 0.5)',
-        tension: 0.1,
-        pointBackgroundColor: 'rgba(255, 206, 86, 0.5)',
-      },
-    ],
+    datasets,
   };
 
   const options = {
-    maintainAspectRatio: false, // Allow the chart to fill its container.
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         display: true,
@@ -223,21 +261,20 @@ const LineChartGuardrails = ({ data }) => {
       },
       tooltip: {
         callbacks: {
-          // Use the User Prompt as the sole title of the tooltip.
           title: function (context) {
             if (!context.length) return '';
             const idx = context[0].dataIndex;
             const testData = sortedData[idx];
             return testData?.['User Prompt'] || 'No Prompt Provided';
           },
-          // Show the guardrail type and the original (untransformed) result.
           label: function (context) {
+            const datasetLabel = context.dataset.label;
             const idx = context.dataIndex;
             const testData = sortedData[idx];
-            const originalVal = testData ? testData[context.dataset.label] : null;
-            const resultText =
-              originalVal === 0 ? 'Pass' : originalVal === 1 ? 'Fail' : originalVal;
-            return `${context.dataset.label} Guardrail: ${resultText}`;
+            const originalValue = testData[datasetLabel];
+            const passFail =
+              originalValue === 0 ? 'Pass' : originalValue === 1 ? 'Fail' : originalValue;
+            return `${datasetLabel}: ${passFail}`;
           },
         },
       },
@@ -245,7 +282,7 @@ const LineChartGuardrails = ({ data }) => {
     scales: {
       x: {
         ticks: {
-          autoSkip: false, // Display every test number.
+          autoSkip: false,
         },
       },
       y: {
@@ -253,11 +290,10 @@ const LineChartGuardrails = ({ data }) => {
         max: 2,
         ticks: {
           stepSize: 1,
-          // Label only the 0 and 1 ticks. Here, 0 represents Fail and 1 represents Pass.
           callback: function (value) {
             if (value === 0) return 'Fail';
             if (value === 1) return 'Pass';
-            return ''; // Hide the -1 and 2 labels.
+            return '';
           },
         },
       },
@@ -270,7 +306,6 @@ const LineChartGuardrails = ({ data }) => {
     </div>
   );
 };
-
 
 ///////////////////////
 // Main Grid Component
