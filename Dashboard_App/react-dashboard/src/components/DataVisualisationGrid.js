@@ -347,22 +347,22 @@ const DataVisualisationGrid = () => {
 
   return (
     <div className="data-viz-grid">
-      {/* Pie Chart */}
-      <VizBlock id="pieChart">
-        <PieChart data={chartsData.pieChart} />
-      </VizBlock>
-
       {/* Bar Chart of Effectiveness */}
       <VizBlock id="successBarChart">
         <BarChartEffectiveness data={chartsData.successBarChart} />
       </VizBlock>
-
+  
+      {/* Pie Chart */}
+      <VizBlock id="pieChart">
+        <PieChart data={chartsData.pieChart} />
+      </VizBlock>
+  
       {/* Line Chart for Guardrail Pass/Fail per Test */}
       <VizBlock id="questionLineGraph">
         <LineChartGuardrails data={chartsData.questionLineGraph} />
       </VizBlock>
     </div>
-  );
+  );  
 };
 
 export default DataVisualisationGrid;
