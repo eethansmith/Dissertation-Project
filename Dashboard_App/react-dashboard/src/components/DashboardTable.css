@@ -1,0 +1,59 @@
+.table-container {
+    margin-top: 60px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  
+  /* Table styles */
+  table {
+    width: 80%;
+    border-collapse: collapse;
+    background-color: #fff;
+  }
+
+  /* Add font-size for table header and cells */
+  table th,
+  table td {
+    font-size: 14px; /* Adjust this value as needed */
+  }
+   
+th, td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+}
+  
+  /* Adjusted cell padding for table rows */
+  td {
+    padding: 6px 10px;
+  }
+  
+  /* Status cell styles with oval appearance */
+    td span.status {
+    display: inline-block;        /* Shrink-wrap the content */
+    padding: 4px 12px;            /* Adjust padding for a rounded look */
+    border-radius: 999px;         /* Large value makes it oval */
+    font-weight: bold;            /* Optional: make the text bold */
+    text-transform: capitalize;   /* Optionally capitalize the first letter */
+    }
+
+    /* Completed status - green */
+    td span.status.status-complete {
+    background-color: #d4edda;    /* Light green background */
+    color: #1e973a;               /* Dark green text */
+    }
+
+    /* In progress status - orangy/yellow */
+    td span.status.status-inprogress {
+    background-color: #fff3cd;    /* Light yellow/orange background */
+    color: #f5c330;               /* Dark amber text */
+    }
+
+    /* Failed status - red */
+    td span.status.status-failed {
+    background-color: #f8d7da;    /* Light red background */
+    color: #bf3240;               /* Dark red text */
+    }

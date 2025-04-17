@@ -1,0 +1,39 @@
+/* Main dashboard container */
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    min-height: 100vh;
+    position: relative;
+    background-color: #f8f8f8;
+  }
+  
+  /* Apply a blur filter to the background when modal is active */
+  .blur-background {
+    filter: blur(4px);
+  }
+  
+  /* Header with button in top right */
+  .header {
+    width: 100%;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+  
+  /* Start New Test button styles */
+  .new-test-button {
+    font-size: 1rem;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .new-test-button:hover {
+    background-color: #0056b3;
+  }
+  
