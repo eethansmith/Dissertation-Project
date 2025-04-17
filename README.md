@@ -38,9 +38,9 @@ A modular Flask + React application for **benchmarking the security guardrails 
 ## System Architecture
 ```text
                      ┌───────────────┐              ┌──────────────────────┐
-                     │ React Dashboard│  REST/JSON  │ Flask API Gateway     │
-                     │  (Vite + D3)  │◀───────────▶│  /app/routes.py       │
-                     └───────────────┘              └─────────┬────────────┘
+                     │React Dashboard│  REST/JSON   │   Flask API Gateway  │
+                     │  JavaScript   │◀────────────▶│    /app/routes.py    │
+                     └───────────────┘              └──────────┬───────────┘
                                                                │
                                                      ┌─────────▼───────────┐
                                                      │ Guard Execution     │
