@@ -1,4 +1,3 @@
-// /src/components/DashboardTable.js
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './DashboardTable.css';

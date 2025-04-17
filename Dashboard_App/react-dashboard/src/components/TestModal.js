@@ -1,4 +1,3 @@
-// /src/components/TestModal.js
 import React from 'react';
 import './TestModal.css';
 
@@ -64,7 +63,6 @@ const TestModal = ({
           >
             {/* MODEL_OPTIONS are imported as a prop from the Dashboard or from a constants file */}
             {/** You can also pass MODEL_OPTIONS as a prop if needed. */}
-            {/** Alternatively, if you import from constants directly: */}
             {require('../constants').MODEL_OPTIONS.map((model, index) => (
               <option key={index} value={model}>
                 {model}
@@ -98,8 +96,7 @@ const TestModal = ({
             </div>
           )}
         </div>
-
-        {/* Guardrail Options (can be extracted further if needed) */}
+        
         <div className="form-group">
           <label>Select the Guardrails you would like to test:</label>
           <div>

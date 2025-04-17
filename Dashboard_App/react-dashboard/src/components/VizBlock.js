@@ -1,11 +1,9 @@
-// VizBlock.js
 import React, { useEffect, useRef } from 'react';
 
 const VizBlock = ({ id, children, renderViz }) => {
   const containerRef = useRef(null);
 
   useEffect(() => {
-    // If an imperative render callback is provided, call it.
     if (renderViz && containerRef.current) {
       renderViz(containerRef.current);
     }
